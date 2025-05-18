@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
-import ExifReader from "exifreader";
 import {Image} from "image-js";
+import exifr from "exifr";
 
 export async function calculateFileHash(file){
     try{
@@ -20,42 +20,28 @@ export async function calculateFileHash(file){
 }
 
 // Funzione principale per calcolare gli hash
-export async function calculateImageHash(file) {
+export async function calculateImageHash(file, pixelAlgo = "sha256", metadataAlgo = "sha256") {
   try {
     // Converti il file in ArrayBuffer per l'analisi
     console.log("calculating hash of image", file);
     const buffer = await file.arrayBuffer();
-    const image = await Image.load(buffer);
-    
-    // Determina il formato dell'immagine dai primi byte
-    //const isPNG = buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47;
-    //const isJPEG = buffer[0] === 0xFF && buffer[1] === 0xD8;
-    
-    /*if (!isPNG && !isJPEG) {
-      throw new Error("Formato immagine non supportato. Solo PNG e JPEG sono supportati.");
-    }*/
 
+    // estrai i pixel immagine usando image-js
+    const image = await Image.load(buffer);
     const pixelData = image.data;    
-    /*
-    if (isPNG) {
-      //const result = await extractPNGData(buffer);
-      //pixelData = result.pixelData;
-      //metadataData = result.metadataData;
-    } else if(isJPEG) {
-      const result = await extractJPEGData(imgArrayBuffer);
-      pixelData = result.pixelData;
-      metadataData = result.metadataData;
-    }*/
-   console.log("Pixel data length:", pixelData.length);
-    
-    // Calcola gli hash con ethers.js
-    const pixelHash = ethers.sha256(new Uint8Array(pixelData));
-    console.log("Hash dei pixel uintarray:", pixelHash);
-    //const metadataHash = ethers.sha256(pixelData);
+
+    // Calcola l'hash dei pixel
+    const pixelHash = await calcPixelHashSHA256(pixelData);
+
+    const metadata = await extractMetadata(file);
+    console.log("Metadata estratti:", metadata);
+    const metadataHash = await calcMetadataHash(metadata);
+    console.log("Hash dei metadati:", metadataHash);
+
     
     return {
       pixelHash: pixelHash,
-      metadataHash: pixelHash,
+      metadataHash: metadataHash,
     };
   } catch (error) {
     console.error("Errore durante il calcolo degli hash:", error);
@@ -64,62 +50,52 @@ export async function calculateImageHash(file) {
 }
 
 
-// Estrazione dati JPEG usando jpeg-js e ExifReader
-async function extractPixelData(buffer) {
-  // Usa ExifReader per estrarre i metadati
-  console.log("Estrazione metadati JPEG con exifreader");
-  const tags = ExifReader.load(buffer);
+async function calcPixelHashSHA256(pixelData) {
+
+    // calcolo hash usando crypto nativa
+    console.log("Pixel data length:", pixelData.length);
+    const startTime1 = performance.now();
+    const hashBuffer = await crypto.subtle.digest('SHA-256', pixelData);
+    console.log("Hash dei pixel con crypto:", hashBuffer);
+    const hashArray = new Uint8Array(hashBuffer);
+    console.log("Hash dei pixel convertito in array:", hashArray);
+    // conversione in stringa esadecimale con ethers
+    const pixelHash = ethers.hexlify(hashArray);
+    const endTime1 = performance.now();
+
+    console.log("Hash dei pixel con crypto convertito con ethers:", pixelHash);
+    console.log("Tempo di calcolo hash dei pixel:", endTime1 - startTime1, "ms");
   
-  // Converti i metadati in un buffer
-  const metadataStr = JSON.stringify(tags);
-  console.log("Metadati JPEG:", metadataStr);
-  const metadataData = Buffer.from(metadataStr);
-  console.log("decodifica jpeg con jpeg-js per ottenere i pixel");
-  // Usa jpeg-js per decodificare l'immagine e ottenere i pixel
-  const jpegData = JPEG.decode(buffer);
-  const pixelData = Buffer.from(jpegData.data);
-  
-  return {
-    pixelData,
-    metadataData
-  };
+  return pixelHash;
 }
 
-// Estrazione dati PNG usando pngjs
-async function extractPNGData(buffer) {
-  return new Promise((resolve, reject) => {
-    // Usa la libreria PNG per analizzare il file
-    const png = new PNG();
-    
-    // Parser per gli eventi e raccolta metadati
-    const metadataChunks = [];
-    
-    // Intercetta i chunk per raccogliere metadati
-    png.on('metadata', metadata => {
-      // Converti il metadata in buffer
-      const metadataStr = JSON.stringify(metadata);
-      const metadataBuffer = Buffer.from(metadataStr);
-      metadataChunks.push(metadataBuffer);
+async function extractMetadata(file){
+    // Estrai i metadati usando exifr
+    const metadata = await exifr.parse(file, {
+        // Opzioni per exifr
+        tiff: true,
+        xmp: true,
+        icc: false,
+        iptc: true,
+        jfif: false,
+        ihdr: true,
+        exif: true,
+        gps: true,
+        ifd0: true,
+        ifd1: true,
     });
-    
-    // Analizza i dati PNG
-    png.parse(buffer, (error, data) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-      
-      // I pixel sono accessibili tramite data.data
-      const pixelData = Buffer.from(data.data);
-      
-      // Se non abbiamo metadati, creiamo un buffer vuoto
-      const metadataData = Buffer.concat(metadataChunks.length > 0 ? 
-        metadataChunks : [Buffer.from([])]);
-      
-      resolve({
-        pixelData,
-        metadataData
-      });
-    });
-  });
+    return metadata;
+}
+async function calcMetadataHash(metadata) {
+    // Calcola l'hash dei metadati
+
+    const metadataString = JSON.stringify(metadata);
+    console.log("Stringa dei metadati:", metadataString);
+    const encoder = new TextEncoder();
+    const data = encoder.encode(metadataString);
+    console.log("Dati dei metadati:", data);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = new Uint8Array(hashBuffer);
+    const metadataHash = ethers.hexlify(hashArray);
+    return metadataHash;
 }

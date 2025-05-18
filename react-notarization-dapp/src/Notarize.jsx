@@ -37,7 +37,7 @@ export default function Notarize() {
       setImage(file);
       setIsProcessing(true);
       // Processa il file in base al tipo
-      const result = calculateImageHash(file);
+      const result = await calculateImageHash(file);
       
       setImageResult(result);
     } catch (error) {
