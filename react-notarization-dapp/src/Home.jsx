@@ -1,6 +1,16 @@
-// File: src/pages/Home.jsx
 import React from 'react'
+import { useMetamask } from './WalletContext.jsx'
 
 export default function Home() {
-  return <h1>Benvenuto nella dApp di Notarizzazione</h1>
+  const { account, connectMetamask, disconnectMetamask } = useMetamask();
+
+  return (
+  <>
+  <h1>Benvenuto nella dApp di Notarizzazione</h1>
+  <p>Account: {account ? account : "Non connesso"}</p>
+  <button onClick={account ? disconnectMetamask : connectMetamask}>
+    {account ? "Disconnetti" : "Connetti Metamask"}
+  </button>
+  </>
+  )
 }

@@ -38,7 +38,6 @@ export async function calculateImageHash(file, pixelAlgo = "sha256", metadataAlg
     const metadataHash = await calcMetadataHash(metadata);
     console.log("Hash dei metadati:", metadataHash);
 
-    
     return {
       pixelHash: pixelHash,
       metadataHash: metadataHash,

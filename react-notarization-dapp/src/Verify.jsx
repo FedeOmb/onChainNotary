@@ -1,7 +1,7 @@
 // File: src/pages/Verify.jsx
 import React, { useState } from 'react'
 
-export default function Verify() {
+export default function Verify({file, fileType}) {
   const [inputHash, setInputHash] = useState('')
 
   return (
