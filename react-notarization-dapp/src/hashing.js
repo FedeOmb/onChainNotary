@@ -72,7 +72,8 @@ async function extractMetadata(file){
     // Estrai i metadati usando exifr
     const metadata = await exifr.parse(file, {
         // Opzioni per exifr
-        tiff: true,
+        mergeOutput: false,
+        tiff: false,
         xmp: true,
         icc: false,
         iptc: true,
@@ -81,7 +82,6 @@ async function extractMetadata(file){
         exif: true,
         gps: true,
         ifd0: true,
-        ifd1: true,
     });
     return metadata;
 }

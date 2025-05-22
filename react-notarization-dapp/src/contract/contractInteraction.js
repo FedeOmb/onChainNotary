@@ -83,18 +83,14 @@ async function verifyDocHash(docHash) {
   }
 }
 
-async function notarizeDocument(){
+export async function notarizeDocument(contract, hash){
     try{
-        const tx = await contractWithSigner.storeDocument(calcHash, "sha256");
+        const tx = await contract.storeDocument(hash, "sha256");
         console.log("Transaction sent:", tx);
         const receipt = await tx.wait();
         console.log("Documento salvato", receipt);
-        const resultDiv = document.getElementById('transaction-result');
-        resultDiv.innerHTML = `
-            <h3>Document notarized!</h3>
-            <p><strong>Transaction Hash:</strong> ${receipt.hash}</p>
-            <p><strong>Block Number:</strong> ${receipt.blockNumber}</p>
-        `;
+        return {txHash: tx.hash,
+                txReceipt: receipt,};
     } catch (error) {
         console.error("Errore durante la notarizzazione:", error);
         alert("Errore durante la notarizzazione del documento");
