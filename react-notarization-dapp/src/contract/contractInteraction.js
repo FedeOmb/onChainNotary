@@ -8,9 +8,7 @@ let contractWithSigner;
 let userAddress;
 let calcHash;
 
-
-const infoElement = document.getElementById("account-info");
-
+/*
 export async function connectToMetamask() {
   if (typeof window.ethereum !== "undefined") {
     try {
@@ -46,9 +44,9 @@ export async function loadContract() {
         return false;
     }
 }
-
-async function getMyDocumentsHashes() {
-    const hashes = await contractWithSigner.getMyDocumentsHashes();
+*/
+async function getMyDocumentsHashes(contract) {
+    const hashes = await contract.getMyDocumentsHashes();
     
     // Converti gli hash in formato leggibile
     const hashesReadable = hashes.map(hash => ethers.hexlify(hash));    
@@ -56,26 +54,27 @@ async function getMyDocumentsHashes() {
     return hashesReadable;
 }
 
-async function getMyFilesCount(){
-    const count = await contractWithSigner.getMyFilesCount();
+async function getMyFilesCount(contract){
+    const count = await contract.getMyFilesCount();
     console.log("Number of files:", count.toString());
     return count;
 }
 
-async function verifyDocHash(docHash) {
+export async function verifyDocHash(contract, hash) {
     try {
-        console.log("Hash da verificare:", docHash);
-        const result = await contractWithSigner.getDocument(docHash);
+        console.log("Hash da verificare:", hash);
+        const result = await contract.getDocument(hash);
         
         const [uploader, timestamp, hashAlgorithm] = result;
-        
         const date = new Date(Number(timestamp) * 1000);
+        console.log(result);
+        console.log(date)
     
     return {
-      uploader,
+      uploader: uploader,
       timestamp: timestamp.toString(),
       readableDate: date.toLocaleString(),
-      hashAlgorithm
+      hashAlgorithm: hashAlgorithm,
     };
 } catch (error) {
     console.error("Errore durante la verifica del documento:", error);
@@ -83,18 +82,50 @@ async function verifyDocHash(docHash) {
   }
 }
 
-export async function notarizeDocument(contract, hash){
-    try{
-        const tx = await contract.storeDocument(hash, "sha256");
-        console.log("Transaction sent:", tx);
-        const receipt = await tx.wait();
-        console.log("Documento salvato", receipt);
-        return {txHash: tx.hash,
-                txReceipt: receipt,};
-    } catch (error) {
-        console.error("Errore durante la notarizzazione:", error);
-        alert("Errore durante la notarizzazione del documento");
-    }
-
+export async function verifyImageHash(contract, hash) {
+    try {
+        console.log("Hash da verificare:", hash);
+        const result = await contract.getImage(hash);
+        
+        const [uploader, timestamp, metadataHash, extension, pixelHashAlgorithm, metadataHashAlgorithm] = result;
+        const date = new Date(Number(timestamp) * 1000);
+        console.log(result);
+        console.log(date)
+    return {
+        uploader: uploader,
+        timestamp: timestamp.toString(),
+        readableDate: date.toLocaleString(),
+        metadataHash: metadataHash,
+        extension: extension,
+        pixelHashAlgorithm: pixelHashAlgorithm,
+        metadataHashAlgorithm: metadataHashAlgorithm,
+    };
+} catch (error) {
+    console.error("Errore durante la verifica del documento:", error);
+    throw error;
+  }    
 }
 
+export async function notarizeDocument(contract, hash, algorithm){
+    try{
+        const tx = await contract.storeDocument(hash, algorithm);
+        console.log("Transaction sent:", tx);
+        const txReceipt = await tx.wait();
+        console.log("Documento salvato", txReceipt);
+        return  txReceipt;
+    } catch (error) {
+        console.error("Errore durante la notarizzazione del documento:", error);
+        throw error;}
+}
+export async function notarizeImage(contract, pixelHash, metadataHash, extension, algoPixelHash, algoMetadataHash){
+    try{
+        const tx = await contract.storeImage(pixelHash, metadataHash, extension, algoPixelHash, algoMetadataHash);
+        console.log("Transaction sent:", tx);
+        const txReceipt = await tx.wait();
+        console.log("Documento salvato", txReceipt);
+        return  txReceipt;
+    } catch (error) {
+        console.error("Errore durante la notarizzazione dell'immagine:", error);
+        throw error;
+    }
+}

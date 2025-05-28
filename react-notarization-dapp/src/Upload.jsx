@@ -9,7 +9,7 @@ export default function Upload() {
   const [docHash, setDocHash] = useState(null)
   const [file, setFile] = useState(null)
   const [image, setImage] = useState(null)
-  const [imageHash, setImageHash] = useState(null)
+  const [imageHashData, setImageHashData] = useState(null)
   const [imagePreview, setImagePreview] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
@@ -26,12 +26,9 @@ export default function Upload() {
   const handleImageChange = async (e) => {
     const file = e.target.files[0]
     if (!file) return
-          setImagePreview(null);
+    setImagePreview(null);
     try {
 
-      // Crea un'anteprima dell'immagine
-      setImagePreview(URL.createObjectURL(file));
-      
       // Determina il tipo di file
       const isPNG = file.type === 'image/png';
       const isJPEG = file.type === 'image/jpeg';
@@ -40,9 +37,16 @@ export default function Upload() {
         throw new Error('Formato non supportato. Solo PNG e JPEG sono supportati.');
       }
       setImage(file);
+      // Crea un'anteprima dell'immagine
+      setImagePreview(URL.createObjectURL(file));
       setIsProcessing(true);
       const result = await calculateImageHash(file);
-      setImageHash(result);
+      const extension = file.name.split('.').pop();
+      setImageHashData({
+        pixelHash: result.pixelHash,
+        metadataHash: result.metadataHash,
+        extension: extension
+      });
       
     } catch (error) {
       console.error('Errore:', error);
@@ -57,7 +61,7 @@ export default function Upload() {
     setFile(null);
     setImage(null);
     setDocHash(null);
-    setImageHash(null);
+    setImageHashData(null);
     setImagePreview(null);
   }
 
@@ -109,14 +113,14 @@ export default function Upload() {
       {fileType === "document" && docHash &&(
           <p>Hash SHA256 del documento: {docHash}</p>
       )}
-      {fileType === "image" && imageHash && (
+      {fileType === "image" && imageHashData && (
         <div>
-          <p>Hash SHA256 dei pixel: {imageHash.pixelHash}</p>
-          <p>Hash SHA256 dei metadati: {imageHash.metadataHash}</p>
+          <p>Hash SHA256 dei pixel: {imageHashData.pixelHash}</p>
+          <p>Hash SHA256 dei metadati: {imageHashData.metadataHash}</p>
         </div>
       )}
-      {(docHash || imageHash) && (
-        <Notarize docHash={docHash} imageHashes={imageHash} />
+      {(docHash || imageHashData) && (
+        <Notarize docData={docHash} imageData={imageHashData} />
         )}
 
 
