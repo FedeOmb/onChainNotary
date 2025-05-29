@@ -26,11 +26,11 @@ export default function NotarizeVerify({docData, imageData}) {
     }
   try {
       if(docData){
-      const result = await notarizeDocument(contract, docData, "SHA256");
+      const result = await notarizeDocument(contract, docData.hash, "SHA256", docData.extension);
       setTxReceipt(result);
       setIsProcessing(false);
       }else if(imageData){
-        const result = await notarizeImage(contract, imageData.pixelHash, imageData.metadataHash, imageData.extension, "SHA256", "SHA256");
+        const result = await notarizeImage(contract, imageData.pixelHash, imageData.fullHash, imageData.extension, "SHA256", "SHA256");
         setTxReceipt(result);
         setIsProcessing(false);
       }
@@ -157,10 +157,10 @@ export default function NotarizeVerify({docData, imageData}) {
               <Text>Uploader: {verificationResult.uploader}</Text>
               <Text>Timestamp di upload: {verificationResult.timestamp}</Text>
               <Text>Data di upload: {verificationResult.readableDate}</Text>
-              <Text>Hash dei metadati: {verificationResult.metadataHash}</Text>
+              <Text>Hash file completo: {verificationResult.fullHash}</Text>
               <Text>Estensione immagine originale: {verificationResult.extension}</Text>
               <Text>Algoritmo di hash pixel: {verificationResult.pixelHashAlgorithm}</Text>
-              <Text>Algoritmo di hash metadati: {verificationResult.metadataHashAlgorithm}</Text>
+              <Text>Algoritmo di hash file completo: {verificationResult.fullHashAlgorithm}</Text>
             </Box>
             )}            
             </Box>

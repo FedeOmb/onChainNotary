@@ -18,7 +18,7 @@ export default function Home() {
   return(
     <Flex as="nav" minWidth="100vw" bg="white" px={6} py={4} shadow="sm" justify="space-between" align="center">
       <Box flexBasis="60%">
-        <Heading size="xl" >Notarization Dapp</Heading>
+        <Heading size="xl" >ETHProof</Heading>
       </Box>
       <Box flexBasis="40%">
         <Button variant="solid" colorPalette="blue" onClick={account ? disconnectMetamask : connectMetamask}>

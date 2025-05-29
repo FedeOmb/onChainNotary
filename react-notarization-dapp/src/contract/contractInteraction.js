@@ -8,58 +8,6 @@ let contractWithSigner;
 let userAddress;
 let calcHash;
 
-/*
-export async function connectToMetamask() {
-  if (typeof window.ethereum !== "undefined") {
-    try {
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        userAddress = accounts[0];
-
-        provider = new ethers.BrowserProvider(window.ethereum);
-        signer = await provider.getSigner();
-
-        return {provider, signer}
-    } catch (error) {
-      throw new Error("Error connecting to Metamask: " + error.message);
-    }
-}}
-
-export async function loadContract() {
-    try {
-        if (!contractAddress || !contractAbi) {
-            throw new Error('Indirizzo del contratto e ABI non trovati');
-        }
-        console.log("Contract address", contractAddress);
-        console.log("ABI", contractAbi);
-        
-        // Crea l'istanza del contratto
-        contract = new ethers.Contract(contractAddress, contractAbi, provider);
-        contractWithSigner = contract.connect(signer);
-        console.log("Contract created", contract);
-        
-        return contractWithSigner;
-    } catch (error) {
-        console.error(error);
-        alert(`Errore nel caricamento del contratto: ${error.message}`);
-        return false;
-    }
-}
-*/
-async function getMyDocumentsHashes(contract) {
-    const hashes = await contract.getMyDocumentsHashes();
-    
-    // Converti gli hash in formato leggibile
-    const hashesReadable = hashes.map(hash => ethers.hexlify(hash));    
-    console.log("Hashes retrieved:", hashesReadable);
-    return hashesReadable;
-}
-
-async function getMyFilesCount(contract){
-    const count = await contract.getMyFilesCount();
-    console.log("Number of files:", count.toString());
-    return count;
-}
-
 export async function verifyDocHash(contract, hash) {
     try {
         console.log("Hash da verificare:", hash);
@@ -87,7 +35,7 @@ export async function verifyImageHash(contract, hash) {
         console.log("Hash da verificare:", hash);
         const result = await contract.getImage(hash);
         
-        const [uploader, timestamp, metadataHash, extension, pixelHashAlgorithm, metadataHashAlgorithm] = result;
+        const [uploader, timestamp, fullHash, extension, pixelHashAlgorithm, fullHashAlgorithm] = result;
         const date = new Date(Number(timestamp) * 1000);
         console.log(result);
         console.log(date)
@@ -95,10 +43,10 @@ export async function verifyImageHash(contract, hash) {
         uploader: uploader,
         timestamp: timestamp.toString(),
         readableDate: date.toLocaleString(),
-        metadataHash: metadataHash,
+        fullHash: fullHash,
         extension: extension,
         pixelHashAlgorithm: pixelHashAlgorithm,
-        metadataHashAlgorithm: metadataHashAlgorithm,
+        fullHashAlgorithm: fullHashAlgorithm,
     };
 } catch (error) {
     console.error("Errore durante la verifica del documento:", error);
@@ -106,9 +54,9 @@ export async function verifyImageHash(contract, hash) {
   }    
 }
 
-export async function notarizeDocument(contract, hash, algorithm){
+export async function notarizeDocument(contract, hash, algorithm, extension){
     try{
-        const tx = await contract.storeDocument(hash, algorithm);
+        const tx = await contract.notarizeDocument(hash, algorithm, extension);
         console.log("Transaction sent:", tx);
         const txReceipt = await tx.wait();
         console.log("Documento salvato", txReceipt);
@@ -117,9 +65,9 @@ export async function notarizeDocument(contract, hash, algorithm){
         console.error("Errore durante la notarizzazione del documento:", error);
         throw error;}
 }
-export async function notarizeImage(contract, pixelHash, metadataHash, extension, algoPixelHash, algoMetadataHash){
+export async function notarizeImage(contract, pixelHash, fullHash, extension, algoPixelHash, algoFullHash){
     try{
-        const tx = await contract.storeImage(pixelHash, metadataHash, extension, algoPixelHash, algoMetadataHash);
+        const tx = await contract.notarizeImage(pixelHash, fullHash, extension, algoPixelHash, algoFullHash);
         console.log("Transaction sent:", tx);
         const txReceipt = await tx.wait();
         console.log("Documento salvato", txReceipt);
@@ -128,4 +76,54 @@ export async function notarizeImage(contract, pixelHash, metadataHash, extension
         console.error("Errore durante la notarizzazione dell'immagine:", error);
         throw error;
     }
+}
+
+export async function documentExists(contract, hash) {
+    try {
+        const exists = await contract.documentExists(hash);
+        console.log("Document exists:", exists);
+        return exists;
+    } catch (error) {
+        console.error("Errore durante la verifica del documento:", error);
+        throw error;
+    }
+}
+
+export async function imageExists(contract, hash) {
+    try {
+        const exists = await contract.imageExists(hash);
+        console.log("Document exists:", exists);
+        return exists;
+    } catch (error) {
+        console.error("Errore durante la verifica dell'immagine:", error);
+        throw error;
+    }
+}
+
+export async function getMyDocumentsHashes(contract) {
+    const hashes = await contract.getMyDocumentsHashes();
+    
+    // Converti gli hash in formato leggibile
+    const hashesReadable = hashes.map(hash => ethers.hexlify(hash));    
+    console.log("Hashes retrieved:", hashesReadable);
+    return hashesReadable;
+}
+
+export async function getMyImagesHashes(contract) {
+    const hashes = await contract.getMyImagesHashes();
+    
+    // Converti gli hash in formato leggibile
+    const hashesReadable = hashes.map(hash => ethers.hexlify(hash));    
+    console.log("Hashes retrieved:", hashesReadable);
+    return hashesReadable;
+}
+
+export async function getMyFilesCount(contract){
+    const count = await contract.getMyFilesCount();
+    console.log("Number of documents:", count[0].toString());
+    console.log("Number of images:", count[1].toString());
+    return {
+        images: count[0].toString(),
+        documents: count[1].toString()
+    };
 }

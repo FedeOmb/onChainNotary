@@ -8,7 +8,7 @@ import NotarizeVerify from "./NotarizeVerify.jsx";
 
 export default function Upload() {
   const [fileType, setFileType] = useState("document");
-  const [docHash, setDocHash] = useState(null);
+  const [docHashData, setDocHashData] = useState(null);
   const [file, setFile] = useState(null);
   const [image, setImage] = useState(null);
   const [imageHashData, setImageHashData] = useState(null);
@@ -24,7 +24,11 @@ export default function Upload() {
     setFile(file);
     setIsProcessing(true);
     const result = await calculateFileHash(file);
-    setDocHash(result);
+    const extension = file.name.split(".").pop();
+    setDocHashData({
+      hash: result,
+      extension: extension,
+    })
     setIsProcessing(false);
   };
 
@@ -52,11 +56,11 @@ export default function Upload() {
   const handleImageHash = async (file) => {
     setIsProcessing(true);
     try {
-      const result = await calculateImageHash(file);
+      const result = await calculateImageHash(file, "SHA-256", "SHA-256");
       const extension = file.name.split(".").pop();
       setImageHashData({
         pixelHash: result.pixelHash,
-        metadataHash: result.metadataHash,
+        fullHash: result.fullHash,
         extension: extension,
       });
     } catch (error) {
@@ -73,7 +77,7 @@ export default function Upload() {
   function clearState() {
     setFile(null);
     setImage(null);
-    setDocHash(null);
+    setDocHashData(null);
     setImageHashData(null);
     URL.revokeObjectURL(imagePreview); // Rilascia l'URL dell'anteprima
     setImagePreview(null);
@@ -155,17 +159,17 @@ export default function Upload() {
       </Flex>
       {isProcessing && <p>Calcolo dell'hash in corso...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
-      {fileType === "document" && docHash && (
-        <p>Hash SHA256 del documento: {docHash}</p>
+      {fileType === "document" && docHashData && (
+        <p>Hash SHA256 del documento: {docHashData.hash}</p>
       )}
       {fileType === "image" && imageHashData && (
         <div>
-          <p>Hash SHA256 dei pixel: {imageHashData.pixelHash}</p>
-          <p>Hash SHA256 dei metadati: {imageHashData.metadataHash}</p>
+          <p>Hash SHA256 dei pixel dell'immagine: {imageHashData.pixelHash}</p>
+          <p>Hash SHA256 del file immagine completo: {imageHashData.fullHash}</p>
         </div>
       )}
-      {(docHash || imageHashData) && (
-        <NotarizeVerify docData={docHash} imageData={imageHashData} />
+      {(docHashData || imageHashData) && (
+        <NotarizeVerify docData={docHashData} imageData={imageHashData} />
       )}
     </VStack>
   );

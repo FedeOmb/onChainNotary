@@ -19,8 +19,35 @@ export async function calculateFileHash(file){
     }
 }
 
+export async function calculateImageHash(file, pixelAlgo = "sha256", fullAlgo = "sha256") {
+  try {
+    // Converti il file in ArrayBuffer per l'analisi
+    console.log("calculating hash of image", file);
+    const arrayBuffer = await file.arrayBuffer();
+
+    // estrai i pixel immagine usando image-js
+    const image = await Image.load(arrayBuffer);
+    const pixelData = image.data;    
+
+    // Calcola l'hash dei pixel
+    const pixelHash = await calcPixelHashSHA256(pixelData);
+
+    // Calcolo hash dell'intero file immagine
+    const fileBytes = new Uint8Array(arrayBuffer);
+    // Calcola l'hash SHA256 usando ethers.js
+    const fullHash = ethers.sha256(fileBytes);
+    return {
+      pixelHash: pixelHash,
+      fullHash: fullHash,
+    };
+  } catch (error) {
+    console.error("Errore durante il calcolo degli hash:", error);
+    throw error;
+  }
+}
+
 // Funzione principale per calcolare gli hash
-export async function calculateImageHash(file, pixelAlgo = "sha256", metadataAlgo = "sha256") {
+/*export async function calculateImageHash(file, pixelAlgo = "sha256", metadataAlgo = "sha256") {
   try {
     // Converti il file in ArrayBuffer per l'analisi
     console.log("calculating hash of image", file);
@@ -46,7 +73,9 @@ export async function calculateImageHash(file, pixelAlgo = "sha256", metadataAlg
     console.error("Errore durante il calcolo degli hash:", error);
     throw error;
   }
-}
+}*/
+
+
 
 
 async function calcPixelHashSHA256(pixelData) {
