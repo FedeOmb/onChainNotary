@@ -58,7 +58,7 @@ export default function NotarizeVerify({docData, imageData}) {
     }
     try {
       if(docData){
-        const result = await verifyDocHash(contract, docData);
+        const result = await verifyDocHash(contract, docData.hash);
         console.log("Document verification result:", result);
         setVerificationResult(result);
         setIsProcessing(false);
