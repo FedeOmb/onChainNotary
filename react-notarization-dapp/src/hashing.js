@@ -23,11 +23,17 @@ export async function calculateFileHash(file){
 }
 
 export async function calculateImageHash(file, pixelAlgo = "sha256", fullAlgo = "sha256") {
+  let fullHash;
   try {
     // Converti il file in ArrayBuffer per l'analisi
     console.log("calculating hash of image", file);
     const arrayBuffer = await file.arrayBuffer();
     console.log("ArrayBuffer length:", arrayBuffer.byteLength);
+    // Calcolo hash dell'intero file immagine
+    const fileBytes = new Uint8Array(arrayBuffer);
+    // Calcola l'hash SHA256 usando ethers.js
+    //const fullHash = ethers.sha256(fileBytes);
+    fullHash = await calcHashSHA256(fileBytes);
     /*
     const startTime1 = performance.now();
     // estrai i pixel immagine usando image-js
@@ -47,26 +53,32 @@ export async function calculateImageHash(file, pixelAlgo = "sha256", fullAlgo = 
     console.log("Pixel estratti usando jimp:", pixelData2.length);
     const endTime2 = performance.now();
     console.log("Tempo di estrazione pixel usando jimp:", endTime2 - startTime2, "ms");  
-
+  } catch (error) {
+    console.error("Errore durante l'estrazione dei dati dall'immagine", error);
+    throw error;
+  }
+  try{
     // Calcola l'hash dei pixel
     //const pixelHash1 = await calcHashSHA256(pixelData);
     //console.log("Hash dei pixel con image-js:", pixelHash1);
-    const pixelHash2 = await calcHashSHA256(pixelData2);
-    console.log("Hash dei pixel con jimp:", pixelHash2);
-
-    // Calcolo hash dell'intero file immagine
-    const fileBytes = new Uint8Array(arrayBuffer);
-    // Calcola l'hash SHA256 usando ethers.js
-    //const fullHash = ethers.sha256(fileBytes);
-    console.log("Calcolo perceptual hash usando jimp...");
-    const phash = calcPHashJimp(image2); 
-    console.log("Perceptual hash calcolato:", phash);
-
-    const fullHash = await calcHashSHA256(fileBytes);
+    if (pixelAlgo === "sha256") {
+      console.log("Calcolo hash dei pixel usando SHA256 e jimp...");
+      const pixelHash = await calcHashSHA256(pixelData2);
+      console.log("Hash dei pixel con jimp:", pixelHash);
+      return {
+        pixelHash: pixelHash,
+        fullHash: fullHash,
+      };
+    }
+    if (pixelAlgo === "phash"){
+      console.log("Calcolo perceptual hash usando jimp...");
+      const phash = calcPHashJimp(image2); 
+      console.log("Perceptual hash calcolato:", phash);
     return {
-      pixelHash: pixelHash2,
+      pHash: phash,
       fullHash: fullHash,
     };
+    }
   } catch (error) {
     console.error("Errore durante il calcolo degli hash:", error);
     throw error;
