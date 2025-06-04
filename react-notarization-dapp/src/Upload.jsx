@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { ethers } from "ethers";
 import {
-  Box, Flex, Heading, Button, Text, SegmentGroup, Container, VStack, FileUpload, Image
+  Box, Flex, Heading, Button, Text, SegmentGroup, Container, VStack, FileUpload, Image, NativeSelect
 } from "@chakra-ui/react";
 import { calculateFileHash, calculateImageHash } from "./hashing.js";
 import NotarizeVerify from "./NotarizeVerify.jsx";
@@ -22,6 +22,18 @@ export default function Upload() {
     if (!file) return;
     clearState();
     setFile(file);
+    //handleFileHash(file);
+  };
+
+  const handleHash = async () => {
+    if (fileType === "document" && file) {
+      await handleFileHash(file);
+    } else if (fileType === "image" && image) {
+      await handleImageHash(image);
+    }
+  };  
+
+  const handleFileHash = async (file) => {
     setIsProcessing(true);
     const result = await calculateFileHash(file);
     const extension = file.name.split(".").pop();
@@ -30,7 +42,7 @@ export default function Upload() {
       extension: extension,
     })
     setIsProcessing(false);
-  };
+  }
 
   const handleImageChange = (e) => {
     clearState();
@@ -41,27 +53,35 @@ export default function Upload() {
     const isPNG = file.type === "image/png";
     const isJPEG = file.type === "image/jpeg";
 
-    if (!isPNG && !isJPEG) {
+    /*if (!isPNG && !isJPEG) {
       throw new Error(
         "Formato non supportato. Solo PNG e JPEG sono supportati."
       );
-    }
+    }*/
     setImage(file);
     // Crea un'anteprima dell'immagine
     setImagePreview(URL.createObjectURL(file));
 
-    handleImageHash(file);
+    //handleImageHash(file);
   };
+
+  const handleImageReject = (e) => {
+    console.error("File non accettato:", e);
+    setError(
+      "Formato o dimensione non supportata. Sono supportati solo i formati .jpeg, .png, .gif, .bmp fino a 20 MB"
+    );
+  }
 
   const handleImageHash = async (file) => {
     setIsProcessing(true);
     try {
-      const result = await calculateImageHash(file, "SHA-256", "SHA-256");
+      const result = await calculateImageHash(file);
       const extension = file.name.split(".").pop();
       setImageHashData({
-        pixelHash: result.pixelHash,
+        pixelHashSHA256: result.pixelHashSHA256,
+        phash: result.phash,
         fullHash: result.fullHash,
-        extension: extension,
+        extension: extension
       });
     } catch (error) {
       console.error("Errore:", error);
@@ -108,7 +128,7 @@ export default function Upload() {
 
       {fileType === "document" && (
         <Flex flexDirection="row" flexWrap="wrap"w="100%" p={4} justifyContent={"center"} gap="20px">
-          <FileUpload.Root maxW="xl" alignItems="stretch" maxFiles={1} onFileAccept={handleFileChange}>
+          <FileUpload.Root maxW="xl" alignItems="stretch" maxFiles={1} onFileAccept={handleFileChange} onFileReject={handleImageReject}>
             <FileUpload.HiddenInput />
             <FileUpload.Dropzone>
               <FileUpload.DropzoneContent>
@@ -130,33 +150,50 @@ export default function Upload() {
       )}
 
       {fileType === "image" && (
-        <Flex flexDirection="row" flexWrap="wrap"w="100%" p={4} justifyContent={"center"} gap="20px">
-          <FileUpload.Root maxW="xl" alignItems="stretch" maxFiles={1} accept="image/jpeg,image/png" onFileAccept={handleImageChange}>
-            <FileUpload.HiddenInput />
-            <FileUpload.Dropzone>
-              <FileUpload.DropzoneContent>
+        <Flex flexDirection={"column"} alignItems="center" w="100%" maxW="90vw" p={4}>
+          <Flex flexDirection="row" flexWrap="wrap"w="100%" p={4} justifyContent={"center"} gap="20px">
+            <FileUpload.Root maxW="xl" alignItems="stretch" maxFiles={1} accept="image/jpeg,image/png,image/gif,image/bmp" maxFileSize="20000000" onFileAccept={handleImageChange} onFileReject={handleImageReject}>
+              <FileUpload.HiddenInput />
+              <FileUpload.Dropzone>
+                <FileUpload.DropzoneContent>
+          {image ? (
+              <Flex direction="column" align="center" gap={2}>
+                <Box>
+                  <Heading as="h3" size="md" mt={4}>Immagine caricata:</Heading>
+                  <Text>File: {image.name}</Text>
+                  <Text>Dimensione: {image.size} bytes</Text>
+                  <Text>Tipo: {image.type}</Text>
+                </Box>
+                <Button colorScheme="red" size="sm" onClick={clearState}>
+                  Rimuovi immagine
+                </Button>
+              </Flex>
+            ) : (
+              <>
                 <Box>Trascina qui un'immagine per calcolare il suo Hash</Box>
-                <Box color="fg.muted">Sono supportati i formati .jpeg e .png fino a 20 MB</Box>
-              </FileUpload.DropzoneContent>
-            </FileUpload.Dropzone>
-            <FileUpload.List />
-          </FileUpload.Root>
-          {image && (
-            <Box>
-              <Heading as="h3" size="md" mt={4}>Immagine caricata:</Heading>
-              <Text>File: {image.name}</Text>
-              <Text>Dimensione: {image.size} bytes</Text>
-              <Text>Tipo: {image.type}</Text>
-            </Box>
-          )}
-          {imagePreview && (
-            <Image maxHeight="300px" maxWidth="100%" src={imagePreview} alt="Anteprima immagine" mt={4}>
-            </Image>
-          )}
+                <Box color="fg.muted">
+                  Sono supportati i formati .jpeg, .png, .gif, .bmp fino a 20 MB
+                </Box>
+              </>
+            )}
+                </FileUpload.DropzoneContent>
+              </FileUpload.Dropzone>
+              <FileUpload.List />
+            </FileUpload.Root>
+            {imagePreview && (
+              <Image maxHeight="300px" maxWidth="100%" src={imagePreview} alt="Anteprima immagine" mt={4}>
+              </Image>
+            )}
 
+          </Flex>
         </Flex>
       )}
       </Flex>
+
+      <Button colorScheme="blue" size="sm" onClick={handleHash}>
+        Calcola Hash
+      </Button>
+
       {isProcessing && <p>Calcolo dell'hash in corso...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
       {fileType === "document" && docHashData && (
@@ -164,7 +201,8 @@ export default function Upload() {
       )}
       {fileType === "image" && imageHashData && (
         <div>
-          <p>Hash SHA256 dei pixel dell'immagine: {imageHashData.pixelHash}</p>
+          <p>Hash SHA256 dei pixel dell'immagine: {imageHashData.pixelHashSHA256}</p>
+          <p>Hash pHash dei pixel dell'immagine: {imageHashData.phash}</p>
           <p>Hash SHA256 del file immagine completo: {imageHashData.fullHash}</p>
         </div>
       )}

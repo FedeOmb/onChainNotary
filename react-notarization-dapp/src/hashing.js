@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import {Image} from "image-js";
 import {Jimp} from "jimp";
-import exifr from "exifr";
+//import exifr from "exifr";
 
 export async function calculateFileHash(file){
     try{
@@ -23,23 +23,24 @@ export async function calculateFileHash(file){
 }
 
 export async function calculateImageHash(file, pixelAlgo = "sha256", fullAlgo = "sha256") {
-  let fullHash;
+  let image;
+  let pixelData;
+  let arrayBuffer;
   try {
     // Converti il file in ArrayBuffer per l'analisi
     console.log("calculating hash of image", file);
-    const arrayBuffer = await file.arrayBuffer();
+    arrayBuffer = await file.arrayBuffer();
     console.log("ArrayBuffer length:", arrayBuffer.byteLength);
     // Calcolo hash dell'intero file immagine
-    const fileBytes = new Uint8Array(arrayBuffer);
     // Calcola l'hash SHA256 usando ethers.js
     //const fullHash = ethers.sha256(fileBytes);
-    fullHash = await calcHashSHA256(fileBytes);
+
     /*
     const startTime1 = performance.now();
     // estrai i pixel immagine usando image-js
     console.log("Estrazione dei pixel dall'immagine usando image-js...");
-    const image = await Image.load(arrayBuffer);
-    const pixelData = image.data;    
+    image = await Image.load(arrayBuffer);
+    pixelData = image.data;    
     console.log("Pixel estratti usando image-js:", pixelData.length);
     const endTime1 = performance.now();
     console.log("Tempo di estrazione pixel usando image-js:", endTime1 - startTime1, "ms");
@@ -48,9 +49,9 @@ export async function calculateImageHash(file, pixelAlgo = "sha256", fullAlgo = 
 
     const startTime2 = performance.now();
     console.log("Estrazione dei pixel dall'immagine usando jimp...");
-    const image2 = await Jimp.fromBuffer(arrayBuffer);
-    const pixelData2 = image2.bitmap.data;    
-    console.log("Pixel estratti usando jimp:", pixelData2.length);
+    image = await Jimp.fromBuffer(arrayBuffer, { 'image/jpeg': { maxMemoryUsageInMB: 1024 } });
+    pixelData = image.bitmap.data;    
+    console.log("Pixel estratti usando jimp:", pixelData.length);
     const endTime2 = performance.now();
     console.log("Tempo di estrazione pixel usando jimp:", endTime2 - startTime2, "ms");  
   } catch (error) {
@@ -58,27 +59,22 @@ export async function calculateImageHash(file, pixelAlgo = "sha256", fullAlgo = 
     throw error;
   }
   try{
+      const fileBytes = new Uint8Array(arrayBuffer);
+      const fullHash = await calcHashSHA256(fileBytes);
     // Calcola l'hash dei pixel
     //const pixelHash1 = await calcHashSHA256(pixelData);
     //console.log("Hash dei pixel con image-js:", pixelHash1);
-    if (pixelAlgo === "sha256") {
       console.log("Calcolo hash dei pixel usando SHA256 e jimp...");
-      const pixelHash = await calcHashSHA256(pixelData2);
-      console.log("Hash dei pixel con jimp:", pixelHash);
-      return {
-        pixelHash: pixelHash,
-        fullHash: fullHash,
-      };
-    }
-    if (pixelAlgo === "phash"){
+      const pixelHashSHA256 = await calcHashSHA256(pixelData);
+      console.log("Hash dei pixel con jimp:", pixelHashSHA256);
       console.log("Calcolo perceptual hash usando jimp...");
-      const phash = calcPHashJimp(image2); 
+      const phash = calcPHashJimp(image); 
       console.log("Perceptual hash calcolato:", phash);
     return {
-      pHash: phash,
+      pixelHashSHA256: pixelHashSHA256,
+      phash: phash,
       fullHash: fullHash,
     };
-    }
   } catch (error) {
     console.error("Errore durante il calcolo degli hash:", error);
     throw error;
@@ -88,9 +84,9 @@ export async function calculateImageHash(file, pixelAlgo = "sha256", fullAlgo = 
 function calcPHashJimp(image){
   const phash = image.hash(16);
   console.log("Perceptual hash base 16:", phash);
-  const paddedPhash = phash.padEnd(64, '0'); // ora è una stringa esadecimale da 64 char
-  console.log("Perceptual hash padded:", paddedPhash);
-  const hexString = '0x' + paddedPhash;
+  //const paddedPhash = phash.padEnd(64, '0'); // ora è una stringa esadecimale da 64 char
+  //console.log("Perceptual hash padded:", paddedPhash);
+  const hexString = '0x' + phash;
   console.log("Perceptual hash in formato esadecimale:", hexString)
   const bytes32 = ethers.hexlify(hexString); // restituisce un esadecimale tipo '0x...'
   console.log("Perceptual hash in formato bytes32:", bytes32);

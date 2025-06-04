@@ -1,13 +1,14 @@
 import React, { useState } from 'react'
 import { ethers } from 'ethers'
 import {calculateFileHash, calculateImageHash} from './hashing.js'
-import { notarizeDocument, notarizeImage, verifyDocHash, verifyImageHash} from './contract/contractInteraction.js'
+import { notarizeDocument, notarizeImage, verifyDocHash, verifyImageHash, imageExists, documentExists} from './contract/contractInteraction.js'
 import { useMetamask } from './WalletContext.jsx'
-import {Box, Flex, Heading, Button, Text, SegmentGroup, Container, VStack, FileUpload, Image, Alert} from "@chakra-ui/react";
+import {Box, Flex, Heading, Button, Text, SegmentGroup, Container, VStack, Stack, FileUpload, Image, Alert, NativeSelect, Card, CardHeader, CardBody} from "@chakra-ui/react";
 
 export default function NotarizeVerify({docData, imageData}) {
   const { contract, account } = useMetamask();
   const [operation, setOperation] = useState(null)
+  const [algorithm,setAlgorithm] = useState("sha256");
   const [txReceipt, setTxReceipt] = useState(null)
   const [verificationResult, setVerificationResult] = useState(null)
   const [isProcessing, setIsProcessing] = useState(false);
@@ -26,11 +27,17 @@ export default function NotarizeVerify({docData, imageData}) {
     }
   try {
       if(docData){
-      const result = await notarizeDocument(contract, docData.hash, "SHA256", docData.extension);
+      const result = await notarizeDocument(contract, docData.hash, "sha256", docData.extension);
       setTxReceipt(result);
       setIsProcessing(false);
       }else if(imageData){
-        const result = await notarizeImage(contract, imageData.pixelHash, imageData.fullHash, imageData.extension, "SHA256", "SHA256");
+        let hashToNotarize 
+        if(algorithm == "sha256" ) {
+          hashToNotarize = imageData.pixelHashSHA256;
+        } else if(algorithm == "phash") {
+          hashToNotarize = imageData.phash;
+        }
+        const result = await notarizeImage(contract, hashToNotarize, imageData.fullHash, imageData.extension, algorithm, "sha256");
         setTxReceipt(result);
         setIsProcessing(false);
       }
@@ -63,14 +70,25 @@ export default function NotarizeVerify({docData, imageData}) {
         setVerificationResult(result);
         setIsProcessing(false);
       }else if(imageData){
-        const result = await verifyImageHash(contract, imageData.pixelHash);
+        let hashSHA256Exists = await imageExists(contract, imageData.pixelHashSHA256);
+        let pHashExists = await imageExists(contract, imageData.phash);
+        if (!hashSHA256Exists && !pHashExists) {
+          setError("Immagine non trovata");
+        }
+        let result;
+        if(hashSHA256Exists) {
+        result = await verifyImageHash(contract, imageData.pixelHashSHA256);
+        }else if(pHashExists) {
+        result = await verifyImageHash(contract, imageData.phash);
+        }
+
         console.log("Image verification result:", result);
         setVerificationResult(result);
         setIsProcessing(false);
       }
     } catch (error) {
       if (error?.message?.includes("not found") || error?.reason?.includes("not found")) {
-          setError("Documento non trovato");
+          setError("Immagine non trovata");
       } else {
           setError("Si è verificato un errore durante la verifica: " + error.message);
       }
@@ -81,16 +99,97 @@ export default function NotarizeVerify({docData, imageData}) {
 
   return (
     <VStack>
-      {(docData || imageData)  && (
-        <Flex mt="20px" gap={4} justify="center">
-          <Button variant="solid" colorPalette="blue" onClick={handleNotarize}>
-            Notarizza
-          </Button>
-          <Button variant="solid" colorPalette="blue" onClick={handleVerify}>
-            Verifica
-          </Button>
-        </Flex>
-      )}
+{(docData || imageData) && (
+  <VStack spacing={4} p={6} bg="gray.50" borderRadius="md" w="100%" maxW="600px">
+    <Flex gap={4} w="100%">
+      <Button 
+        flex={1}
+        variant={operation === "notarize" ? "solid" : "outline"} 
+        colorScheme="blue" 
+        onClick={() => setOperation("notarize")}
+      >
+        Notarizza
+      </Button>
+      <Button 
+        flex={1}
+        variant={operation === "verify" ? "solid" : "outline"} 
+        colorScheme="blue" 
+        onClick={handleVerify}
+      >
+        Verifica
+      </Button>
+    </Flex>
+
+    {imageData && operation === "notarize" && (
+      <Box w="100%">
+        <Text mb={4} fontWeight="bold">
+          Seleziona l'algoritmo di hashing:
+        </Text>
+        
+      <VStack spacing={4} align="stretch">
+        <Card.Root 
+          variant="outline"
+          borderColor={algorithm === "sha256" ? "blue.500" : "gray.200"}
+          cursor="pointer"
+          onClick={() => setAlgorithm("sha256")}
+          _hover={{ borderColor: "blue.300" }}
+        >
+          <Card.Body>
+            <Stack spacing={4}>
+              <Flex alignItems="center">
+                <input 
+                  type="radio" 
+                  checked={algorithm === "sha256"} 
+                  onChange={() => setAlgorithm("sha256")}
+                />
+                <Text ml={2} fontWeight="bold">SHA-256</Text>
+              </Flex>
+              <Text fontSize="sm" color="gray.600">
+                Algoritmo di hashing standard che genera un'impronta digitale unica del file.
+                Ideale per la verifica dell'integrità del documento.
+              </Text>
+            </Stack>
+          </Card.Body>
+        </Card.Root>
+          <Card.Root
+            variant="outline"
+            borderColor={algorithm === "phash" ? "blue.500" : "gray.200"}
+            cursor="pointer"
+            onClick={() => setAlgorithm("phash")}
+            _hover={{ borderColor: "blue.300" }}
+          >
+            <Card.Body>
+              <Stack spacing={4}>
+                <Flex alignItems="center">
+                  <input 
+                    type="radio" 
+                    checked={algorithm === "phash"} 
+                    onChange={() => setAlgorithm("phash")}
+                  />
+                  <Text ml={2} fontWeight="bold">pHash (Perceptual Hashing)</Text>
+                </Flex>
+                <Text fontSize="sm" color="gray.600">
+                  Genera un hash basato sul contenuto visivo dell'immagine.
+                  Utile per identificare immagini simili anche se leggermente modificate.
+                </Text>
+              </Stack>
+            </Card.Body>
+          </Card.Root>
+      </VStack>
+
+        <Button 
+          mt={4}
+          w="100%"
+          colorScheme="blue"
+          onClick={handleNotarize}
+          isLoading={isProcessing}
+        >
+          Avvia Notarizzazione
+        </Button>
+      </Box>
+    )}
+  </VStack>
+)}
       {(docData || imageData) && operation === "notarize" && (
         <Box>
           {isProcessing && 

@@ -1,4 +1,4 @@
-export const contractAddress = "0x811e18dbCD72f2Cac1CeF8C86Ae3C9924E8717Ee";
+export const contractAddress = "0x666b547C015DeBaDAC68F4Ec5c26A3FA91835cAE";
 export const contractAbi = [
 	{
 		"anonymous": false,
@@ -6,14 +6,8 @@ export const contractAbi = [
 			{
 				"indexed": true,
 				"internalType": "bytes32",
-				"name": "docKey",
-				"type": "bytes32"
-			},
-			{
-				"indexed": false,
-				"internalType": "bytes",
 				"name": "docHash",
-				"type": "bytes"
+				"type": "bytes32"
 			},
 			{
 				"indexed": true,
@@ -49,20 +43,8 @@ export const contractAbi = [
 			{
 				"indexed": true,
 				"internalType": "bytes32",
-				"name": "imgKey",
-				"type": "bytes32"
-			},
-			{
-				"indexed": false,
-				"internalType": "bytes",
 				"name": "imgHash",
-				"type": "bytes"
-			},
-			{
-				"indexed": false,
-				"internalType": "bytes",
-				"name": "fullHash",
-				"type": "bytes"
+				"type": "bytes32"
 			},
 			{
 				"indexed": true,
@@ -75,6 +57,12 @@ export const contractAbi = [
 				"internalType": "uint256",
 				"name": "timestamp",
 				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "bytes32",
+				"name": "fullHash",
+				"type": "bytes32"
 			},
 			{
 				"indexed": false,
@@ -101,9 +89,9 @@ export const contractAbi = [
 	{
 		"inputs": [
 			{
-				"internalType": "bytes",
+				"internalType": "bytes32",
 				"name": "_docHash",
-				"type": "bytes"
+				"type": "bytes32"
 			},
 			{
 				"internalType": "string",
@@ -124,14 +112,14 @@ export const contractAbi = [
 	{
 		"inputs": [
 			{
-				"internalType": "bytes",
-				"name": "_imageHash",
-				"type": "bytes"
+				"internalType": "bytes32",
+				"name": "_imgHash",
+				"type": "bytes32"
 			},
 			{
-				"internalType": "bytes",
+				"internalType": "bytes32",
 				"name": "_fullHash",
-				"type": "bytes"
+				"type": "bytes32"
 			},
 			{
 				"internalType": "string",
@@ -157,12 +145,12 @@ export const contractAbi = [
 	{
 		"inputs": [
 			{
-				"internalType": "bytes",
+				"internalType": "bytes32",
 				"name": "_docHash",
-				"type": "bytes"
+				"type": "bytes32"
 			}
 		],
-		"name": "documentExistsByHash",
+		"name": "documentExists",
 		"outputs": [
 			{
 				"internalType": "bool",
@@ -177,30 +165,11 @@ export const contractAbi = [
 		"inputs": [
 			{
 				"internalType": "bytes32",
-				"name": "_docKey",
+				"name": "_docHash",
 				"type": "bytes32"
 			}
 		],
-		"name": "documentExistsByKey",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "bytes",
-				"name": "_docHash",
-				"type": "bytes"
-			}
-		],
-		"name": "getDocumentByHash",
+		"name": "getDocument",
 		"outputs": [
 			{
 				"internalType": "address",
@@ -216,11 +185,6 @@ export const contractAbi = [
 				"internalType": "string",
 				"name": "hashAlgorithm",
 				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "extension",
-				"type": "string"
 			}
 		],
 		"stateMutability": "view",
@@ -230,17 +194,12 @@ export const contractAbi = [
 		"inputs": [
 			{
 				"internalType": "bytes32",
-				"name": "_docKey",
+				"name": "_imgHash",
 				"type": "bytes32"
 			}
 		],
-		"name": "getDocumentByKey",
+		"name": "getImage",
 		"outputs": [
-			{
-				"internalType": "bytes",
-				"name": "docHash",
-				"type": "bytes"
-			},
 			{
 				"internalType": "address",
 				"name": "uploader",
@@ -251,93 +210,10 @@ export const contractAbi = [
 				"name": "timestamp",
 				"type": "uint256"
 			},
-			{
-				"internalType": "string",
-				"name": "hashAlgorithm",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "extension",
-				"type": "string"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "bytes",
-				"name": "_imageHash",
-				"type": "bytes"
-			}
-		],
-		"name": "getImageByHash",
-		"outputs": [
-			{
-				"internalType": "bytes",
-				"name": "fullHash",
-				"type": "bytes"
-			},
-			{
-				"internalType": "address",
-				"name": "uploader",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "timestamp",
-				"type": "uint256"
-			},
-			{
-				"internalType": "string",
-				"name": "extension",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "imageHashAlgorithm",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "fullHashAlgorithm",
-				"type": "string"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
 			{
 				"internalType": "bytes32",
-				"name": "_imageKey",
-				"type": "bytes32"
-			}
-		],
-		"name": "getImageByKey",
-		"outputs": [
-			{
-				"internalType": "bytes",
-				"name": "imageHash",
-				"type": "bytes"
-			},
-			{
-				"internalType": "bytes",
 				"name": "fullHash",
-				"type": "bytes"
-			},
-			{
-				"internalType": "address",
-				"name": "uploader",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "timestamp",
-				"type": "uint256"
+				"type": "bytes32"
 			},
 			{
 				"internalType": "string",
@@ -360,11 +236,11 @@ export const contractAbi = [
 	},
 	{
 		"inputs": [],
-		"name": "getMyDocumentsKeys",
+		"name": "getMyDocumentsHashes",
 		"outputs": [
 			{
 				"internalType": "bytes32[]",
-				"name": "docKeys",
+				"name": "docs",
 				"type": "bytes32[]"
 			}
 		],
@@ -391,11 +267,11 @@ export const contractAbi = [
 	},
 	{
 		"inputs": [],
-		"name": "getMyImagesKeys",
+		"name": "getMyImagesHashes",
 		"outputs": [
 			{
 				"internalType": "bytes32[]",
-				"name": "imageKeys",
+				"name": "images",
 				"type": "bytes32[]"
 			}
 		],
@@ -405,31 +281,12 @@ export const contractAbi = [
 	{
 		"inputs": [
 			{
-				"internalType": "bytes",
-				"name": "_imageHash",
-				"type": "bytes"
-			}
-		],
-		"name": "imageExists",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
 				"internalType": "bytes32",
-				"name": "_imgKey",
+				"name": "_imgHash",
 				"type": "bytes32"
 			}
 		],
-		"name": "imageExistsByKey",
+		"name": "imageExists",
 		"outputs": [
 			{
 				"internalType": "bool",

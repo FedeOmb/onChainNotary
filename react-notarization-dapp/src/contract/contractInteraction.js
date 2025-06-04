@@ -11,7 +11,7 @@ let calcHash;
 export async function verifyDocHash(contract, hash) {
     try {
         console.log("Hash da verificare:", hash);
-        const result = await contract.getDocument(hash);
+        const result = await contract.getDocumentByHash(hash);
         
         const [uploader, timestamp, hashAlgorithm] = result;
         const date = new Date(Number(timestamp) * 1000);
@@ -33,9 +33,9 @@ export async function verifyDocHash(contract, hash) {
 export async function verifyImageHash(contract, hash) {
     try {
         console.log("Hash da verificare:", hash);
-        const result = await contract.getImage(hash);
+        const result = await contract.getImageByHash(hash);
         
-        const [uploader, timestamp, fullHash, extension, pixelHashAlgorithm, fullHashAlgorithm] = result;
+        const [fullHash, uploader, timestamp, extension, pixelHashAlgorithm, fullHashAlgorithm] = result;
         const date = new Date(Number(timestamp) * 1000);
         console.log(result);
         console.log(date)
@@ -80,7 +80,7 @@ export async function notarizeImage(contract, pixelHash, fullHash, extension, al
 
 export async function documentExists(contract, hash) {
     try {
-        const exists = await contract.documentExists(hash);
+        const exists = await contract.documentExistsByHash(hash);
         console.log("Document exists:", exists);
         return exists;
     } catch (error) {

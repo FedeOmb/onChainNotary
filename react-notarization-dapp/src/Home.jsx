@@ -18,7 +18,12 @@ export default function Home() {
   return(
     <Flex as="nav" minWidth="100vw" bg="white" px={6} py={4} shadow="sm" justify="space-between" align="center">
       <Box flexBasis="60%">
-        <Heading size="xl" >ETHProof</Heading>
+        <Heading size="xl" >NotaryChain</Heading>
+        {/*ALTRI NOMI POSSIBILI
+        HashProof
+        EthProof
+        AuthentiChain
+        hashNotary*/ }
       </Box>
       <Box flexBasis="40%">
         <Button variant="solid" colorPalette="blue" onClick={account ? disconnectMetamask : connectMetamask}>
