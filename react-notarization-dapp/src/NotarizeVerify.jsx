@@ -3,7 +3,7 @@ import { ethers } from 'ethers'
 import {calculateFileHash, calculateImageHash} from './hashing.js'
 import { notarizeDocument, notarizeImage, verifyDocHash, verifyImageHash, imageExists, documentExists} from './contract/contractInteraction.js'
 import { useMetamask } from './WalletContext.jsx'
-import {Box, Flex, Heading, Button, Text, SegmentGroup, Container, VStack, Stack, FileUpload, Image, Alert, NativeSelect, Card, CardHeader, CardBody} from "@chakra-ui/react";
+import {Box, Flex, Heading, Button, Text, DataList, SegmentGroup, Container, VStack, Stack, FileUpload, Image, Alert, NativeSelect, Card, Collapsible} from "@chakra-ui/react";
 
 export default function NotarizeVerify({docData, imageData}) {
   const { contract, account } = useMetamask();
@@ -78,9 +78,20 @@ export default function NotarizeVerify({docData, imageData}) {
         let result;
         if(hashSHA256Exists) {
         result = await verifyImageHash(contract, imageData.pixelHashSHA256);
+        result.pixelHash = imageData.pixelHashSHA256;
         }else if(pHashExists) {
         result = await verifyImageHash(contract, imageData.phash);
+        result.pixelHash = imageData.phash;
+        } else {
+          setError("Immagine non trovata");
+          setIsProcessing(false);
+          return;
         }
+        let fullHashVerification = false;
+        if (result.fullHash === imageData.fullHash) {
+          fullHashVerification = true;
+        }
+        result.fullHashVerification = fullHashVerification;
 
         console.log("Image verification result:", result);
         setVerificationResult(result);
@@ -106,7 +117,7 @@ export default function NotarizeVerify({docData, imageData}) {
         flex={1}
         variant={operation === "notarize" ? "solid" : "outline"} 
         colorScheme="blue" 
-        onClick={() => setOperation("notarize")}
+        onClick={docData ? handleNotarize : () => setOperation("notarize")}
       >
         Notarizza
       </Button>
@@ -234,34 +245,81 @@ export default function NotarizeVerify({docData, imageData}) {
           )}
           {verificationResult && (
             <Box>
-          <Alert.Root status="success" variant="subtle">
+          <Alert.Root status={verificationResult.fullHashVerification ? "success": "info"} variant="subtle">
             <Alert.Indicator />
+            <Alert.Content>
             <Alert.Title>
               {docData && "Documento verificato con successo!"}
               {imageData && "Immagine verificata con successo!"}
             </Alert.Title>
+              <Alert.Description>
+                <VStack>
+                <DataList.Root orientation={"horizontal"}>
+                <DataList.Item>
+                  <DataList.ItemLabel>Data di upload: </DataList.ItemLabel>
+                  <DataList.ItemValue>{verificationResult.readableDate}</DataList.ItemValue>
+                </DataList.Item>
+                  <DataList.Item>
+                  <DataList.ItemLabel>Uploader Account: </DataList.ItemLabel>
+                  <DataList.ItemValue>{verificationResult.uploader}</DataList.ItemValue>
+                </DataList.Item>
+                </DataList.Root>
+                {imageData && (
+                <>
+                  <Text fontWeight="bold" fontSize={"lg"}>
+                    {verificationResult.fullHashVerification ? ("Il file immagine corrisponde in modo completo a quella salvata in blockchain, non è stata alterata in nessun modo") :"Il file immagine non corrisponde in modo completo a quello salvato in blockchain"}
+                    </Text>
+                  { !verificationResult.fullHashVerification && (
+                  <Text>
+                  {verificationResult.pixelHashAlgorithm === "sha256" && ("Il contenuto visivo dell'immagine è stato verificato con l'algoritmo SHA-256 quindi non è stato alterato in nessun modo, tuttavia i metadati dell'immagine potrebbero essere stati modificati")}
+                  {verificationResult.pixelHashAlgorithm === "phash" && ("Il contenuto visivo dell'immagine è stato verificato con l'algoritmo pHash, quindi potrebbe essere stato modificato in modo minimo, inoltre i metadati dell'immagine potrebbero essere stati modificati")}
+                  </Text>
+                    )}
+                </>
+                )}
+                {docData && (
+                <>
+                  <Text fontWeight="bold" fontSize={"lg"}>
+                    Il documento corrisponde in modo completo a quello salvato in blockchain, non è stato alterato in alcun modo
+                    </Text>
+                </>
+                )}
+                <Collapsible.Root>
+                  <Collapsible.Trigger paddingY="3" fontWeight="bold">Vedi tutti i dettagli</Collapsible.Trigger>
+                  <Collapsible.Content>
+                    <Box padding="4" borderWidth="1px">
+                    { docData && (
+                      <Box>
+                      <Text>Dettagli del documento recuperati:</Text>
+                      <Text>Hash verificato: {verificationResult.hash}</Text>
+                      <Text>Algoritmo di hash usato: {verificationResult.hashAlgorithm}</Text>
+                      <Text>Uploader: {verificationResult.uploader}</Text>
+                      <Text>Timestamp di upload: {verificationResult.timestamp}</Text>
+                      <Text>Data di upload: {verificationResult.readableDate}</Text>
+
+                    </Box>
+                    )}
+                    { imageData && (
+                      <Box>
+                      <Text>Dettagli dell'immagine recuperati:</Text>
+                      <Text>Hash dei pixel verificato: {verificationResult.pixelHash}</Text>
+                      <Text>Algoritmo di hash pixel: {verificationResult.pixelHashAlgorithm}</Text>
+                      <Text>Uploader: {verificationResult.uploader}</Text>
+                      <Text>Timestamp di upload: {verificationResult.timestamp}</Text>
+                      <Text>Data di upload: {verificationResult.readableDate}</Text>
+                      <Text>Hash file completo: {verificationResult.fullHash}</Text>
+                      <Text>Algoritmo di hash file completo: {verificationResult.fullHashAlgorithm}</Text>
+                      <Text>Estensione immagine originale: {verificationResult.extension}</Text>
+                    </Box>
+                    )}    
+                    </Box>
+                  </Collapsible.Content>
+                </Collapsible.Root>
+                </VStack>
+            </Alert.Description>
+            </Alert.Content>
         </Alert.Root>
-            { docData && (
-              <Box>
-              <Text>Dettagli del documento recuperati:</Text>
-              <Text>Uploader: {verificationResult.uploader}</Text>
-              <Text>Timestamp di upload: {verificationResult.timestamp}</Text>
-              <Text>Data di upload: {verificationResult.readableDate}</Text>
-              <Text>Algoritmo di hash usato: {verificationResult.hashAlgorithm}</Text>
-            </Box>
-            )}
-            { imageData && (
-              <Box>
-              <Text>Dettagli dell'immagine recuperati:</Text>
-              <Text>Uploader: {verificationResult.uploader}</Text>
-              <Text>Timestamp di upload: {verificationResult.timestamp}</Text>
-              <Text>Data di upload: {verificationResult.readableDate}</Text>
-              <Text>Hash file completo: {verificationResult.fullHash}</Text>
-              <Text>Estensione immagine originale: {verificationResult.extension}</Text>
-              <Text>Algoritmo di hash pixel: {verificationResult.pixelHashAlgorithm}</Text>
-              <Text>Algoritmo di hash file completo: {verificationResult.fullHashAlgorithm}</Text>
-            </Box>
-            )}            
+        
             </Box>
           )}
           {error && (

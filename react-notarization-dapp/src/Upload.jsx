@@ -132,20 +132,28 @@ export default function Upload() {
             <FileUpload.HiddenInput />
             <FileUpload.Dropzone>
               <FileUpload.DropzoneContent>
+              {file ? (
+              <Flex direction="column" align="center" gap={2}>
+                <Box>
+                  <Heading as="h3" size="md" mt={4}>File caricato:</Heading>
+              <Text>File: {file.name}</Text>
+              <Text>Dimensione: {file.size} bytes</Text>
+              <Text>Tipo: {file.type}</Text>
+                </Box>
+                <Button colorScheme="red" size="sm" onClick={clearState}>
+                  Rimuovi file
+                </Button>
+              </Flex>
+            ) : (
+              <>
                 <Box>Trascina qui un documento per calcolare il suo Hash</Box>
                 <Box color="fg.muted">fino a 20 MB</Box>
+              </>
+            )}
               </FileUpload.DropzoneContent>
             </FileUpload.Dropzone>
             <FileUpload.List />
           </FileUpload.Root>
-          {file && (
-            <Box>
-              <Heading as="h3" size="md" mt={4}>Documento caricato:</Heading>
-              <Text>File: {file.name}</Text>
-              <Text>Dimensione: {file.size} bytes</Text>
-              <Text>Tipo: {file.type}</Text>
-            </Box>
-          )}
         </Flex>
       )}
 
