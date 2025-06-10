@@ -49,11 +49,7 @@ export default function NotarizeVerify({docData, imageData}) {
         setIsProcessing(false);
       }
     } catch (error) {
-      if (error?.message?.includes("hash already stored") || error?.reason?.includes("hash already stored")) {
-          setError("Transazione annullata: questo hash è già stato memorizzato sulla blockchain.");
-      } else {
-          setError("Si è verificato un errore durante la notarizzazione: " + error.message);
-      }
+          setError(error.message);
     } finally{
       setIsProcessing(false);
     }
@@ -233,7 +229,7 @@ export default function NotarizeVerify({docData, imageData}) {
               <Alert.Description>
               <Text>Hash della transazione: {txReceipt.hash}</Text>
               <Text>La transazione è stata minata nel blocco: {txReceipt.blockNumber}</Text>
-              <Text>Visualizza la transazione su <Link href={`https://sepolia.etherscan.io/tx/${txReceipt.hash}`} variant="underline">EtherScan.io</Link></Text>
+              <Text>Visualizza la transazione su <Link target="_blank" href={`https://sepolia.etherscan.io/tx/${txReceipt.hash}`} variant="underline">EtherScan.io</Link></Text>
             </Alert.Description>
             </Alert.Content>
         </Alert.Root>

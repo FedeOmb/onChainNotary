@@ -1,6 +1,6 @@
 import React from 'react'
 import { Routes, Route, Link } from 'react-router-dom'
-import Home from './Home.jsx'
+import Home from './Navbar.jsx'
 import Notarize from './Notarize.jsx'
 import Verify from './Verify.jsx'
 

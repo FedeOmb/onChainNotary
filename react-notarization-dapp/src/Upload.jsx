@@ -126,7 +126,7 @@ export default function Upload() {
   };
 
   return (
-    <VStack spacing={4} p={4} align="center">
+    <VStack spacing={4} p={4} align="center" id="upload-section">
       <Heading as="h2" size="xl" mb={4}>
         Carica un Documento o un'immagine
       </Heading>
@@ -145,7 +145,7 @@ export default function Upload() {
 
       {fileType === "document" && (
         <Flex flexDirection="row" flexWrap="wrap" flexGrow="1" p={4} justifyContent={"center"} gap="10x">
-          <FileUpload.Root maxW="xl" flexBasis="50%" flexGrow="1" alignItems="stretch" maxFiles={1} maxFileSize="10000000" onFileAccept={handleFileChange} onFileReject={handleFileReject}>
+          <FileUpload.Root maxW="xl" flexBasis="50%" flexGrow="1" alignItems="stretch" maxFiles={1} maxFileSize="100000000" onFileAccept={handleFileChange} onFileReject={handleFileReject}>
             <FileUpload.HiddenInput />
             <FileUpload.Dropzone>
               <FileUpload.DropzoneContent>

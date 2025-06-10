@@ -112,11 +112,8 @@ export const MetamaskProvider = ({ children }) => {
     
     const handleAccountsChanged = (accounts) => {
       if (accounts.length > 0) {
-      const _provider = new ethers.BrowserProvider(window.ethereum);
-      const _signer = _provider.getSigner();
-      setProvider(_provider);
-      setSigner(_signer);
-      setAccount(accounts[0]);
+        disconnectMetamask();
+        connectMetamask();
       } else {
         disconnectMetamask();
       }

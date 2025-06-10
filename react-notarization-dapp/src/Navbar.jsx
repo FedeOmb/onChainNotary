@@ -2,7 +2,7 @@ import React from 'react'
 import { Box, Flex, Heading, Button, Text } from '@chakra-ui/react'
 import { useMetamask } from './WalletContext.jsx'
 
-export default function Home() {
+export default function Navbar() {
   const { account, connectMetamask, disconnectMetamask, isConnecting, error} = useMetamask();
 
 /*   return (

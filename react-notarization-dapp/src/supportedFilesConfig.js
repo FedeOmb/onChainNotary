@@ -1,4 +1,4 @@
-acceptedDocTypes = [
+export const acceptedDocTypes = [
     "text/plain",
     "text/csv",
     "text/html",
@@ -17,7 +17,7 @@ acceptedDocTypes = [
     "application/vnd.oasis.opendocument.spreadsheet",
     "application/vnd.oasis.opendocument.text",
   ];
-acceptedImageTypes = [
+export const acceptedImageTypes = [
     "image/jpeg",
     "image/png",
     "image/gif",
