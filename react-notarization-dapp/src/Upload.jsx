@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { ethers } from "ethers";
+import { acceptedDocTypes, acceptedImageTypes} from "./supportedFilesConfig.js";
 import {
-  Box, Flex, Heading, Button, Text, SegmentGroup, Container, VStack, FileUpload, Image, NativeSelect
+  Box, Flex, Heading, Button, Text, SegmentGroup, Container, VStack, FileUpload, Image, Alert, NativeSelect
 } from "@chakra-ui/react";
 import { calculateFileHash, calculateImageHash } from "./hashing.js";
 import NotarizeVerify from "./NotarizeVerify.jsx";
@@ -14,12 +15,19 @@ export default function Upload() {
   const [imageHashData, setImageHashData] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState(null);
-
+  const [uploadError, setUploadError] = useState(null);
+  const [hashError, setHashError] = useState(null)
   const handleFileChange = async (e) => {
     const file = e.files[0];
     console.log("File selected:", file);
     if (!file) return;
+    // Verifica il tipo di file
+    if (!acceptedDocTypes.includes(file.type)) {
+      setUploadError(
+        "Formato o dimensione non supportata."
+      );
+      return;
+    }
     clearState();
     setFile(file);
     //handleFileHash(file);
@@ -40,6 +48,7 @@ export default function Upload() {
     setDocHashData({
       hash: result,
       extension: extension,
+
     })
     setIsProcessing(false);
   }
@@ -67,8 +76,14 @@ export default function Upload() {
 
   const handleImageReject = (e) => {
     console.error("File non accettato:", e);
-    setError(
-      "Formato o dimensione non supportata. Sono supportati solo i formati .jpeg, .png, .gif, .bmp fino a 20 MB"
+    setUploadError(
+      "Formato o dimensione dell'immagine non supportati."
+    );
+  }
+  const handleFileReject = (e) => {
+    console.error("File non accettato:", e);
+    setUploadError(
+      "Formato o dimensione del documento non supportati."
     );
   }
 
@@ -85,7 +100,7 @@ export default function Upload() {
       });
     } catch (error) {
       console.error("Errore:", error);
-      setError(
+      setHashError(
         error.message ||
         "Si è verificato un errore durante l'elaborazione dell'immagine"
       );
@@ -101,6 +116,8 @@ export default function Upload() {
     setImageHashData(null);
     URL.revokeObjectURL(imagePreview); // Rilascia l'URL dell'anteprima
     setImagePreview(null);
+    setHashError(null);
+    setUploadError(null);
   }
 
   const onOptionChange = (e) => {
@@ -109,7 +126,7 @@ export default function Upload() {
   };
 
   return (
-    <VStack w="100%"spacing={4} p={4} align="center">
+    <VStack spacing={4} p={4} align="center">
       <Heading as="h2" size="xl" mb={4}>
         Carica un Documento o un'immagine
       </Heading>
@@ -124,11 +141,11 @@ export default function Upload() {
         </SegmentGroup.Items>
       </SegmentGroup.Root>
 
-      <Flex justify="center" w="100%" maxW="90vw" p={4}>
+      <Flex justify="center" width="90vw" p={4}>
 
       {fileType === "document" && (
-        <Flex flexDirection="row" flexWrap="wrap"w="100%" p={4} justifyContent={"center"} gap="20px">
-          <FileUpload.Root maxW="xl" alignItems="stretch" maxFiles={1} onFileAccept={handleFileChange} onFileReject={handleImageReject}>
+        <Flex flexDirection="row" flexWrap="wrap" flexGrow="1" p={4} justifyContent={"center"} gap="10x">
+          <FileUpload.Root maxW="xl" flexBasis="50%" flexGrow="1" alignItems="stretch" maxFiles={1} maxFileSize="10000000" onFileAccept={handleFileChange} onFileReject={handleFileReject}>
             <FileUpload.HiddenInput />
             <FileUpload.Dropzone>
               <FileUpload.DropzoneContent>
@@ -147,7 +164,17 @@ export default function Upload() {
             ) : (
               <>
                 <Box>Trascina qui un documento per calcolare il suo Hash</Box>
-                <Box color="fg.muted">fino a 20 MB</Box>
+                <Box color="fg.muted">sono supportati i più comuni formati di documenti e testo fino a 100 MB</Box>
+              <Box>
+              {uploadError && (
+                <Alert.Root status="error" variant="subtle">
+                    <Alert.Indicator />
+                    <Alert.Title>
+                      {uploadError}
+                    </Alert.Title>
+                </Alert.Root>
+                )
+              }</Box>
               </>
             )}
               </FileUpload.DropzoneContent>
@@ -158,9 +185,8 @@ export default function Upload() {
       )}
 
       {fileType === "image" && (
-        <Flex flexDirection={"column"} alignItems="center" w="100%" maxW="90vw" p={4}>
-          <Flex flexDirection="row" flexWrap="wrap"w="100%" p={4} justifyContent={"center"} gap="20px">
-            <FileUpload.Root maxW="xl" alignItems="stretch" maxFiles={1} accept="image/jpeg,image/png,image/gif,image/bmp" maxFileSize="20000000" onFileAccept={handleImageChange} onFileReject={handleImageReject}>
+        <Flex flexDirection="row" flexWrap="wrap" flexGrow="1" flexShrink="1" p={4} justifyContent={"center"} gap={1}>
+            <FileUpload.Root maxW="xl" flexBasis="50%" alignItems="stretch" maxFiles={1} accept="image/jpeg,image/png,image/gif,image/bmp" maxFileSize="20000000" onFileAccept={handleImageChange} onFileReject={handleImageReject}>
               <FileUpload.HiddenInput />
               <FileUpload.Dropzone>
                 <FileUpload.DropzoneContent>
@@ -182,6 +208,16 @@ export default function Upload() {
                 <Box color="fg.muted">
                   Sono supportati i formati .jpeg, .png, .gif, .bmp fino a 20 MB
                 </Box>
+                <Box>
+              {uploadError && (
+                <Alert.Root status="error" variant="subtle">
+                    <Alert.Indicator />
+                    <Alert.Title>
+                      {uploadError}
+                    </Alert.Title>
+                </Alert.Root>
+                )
+              }</Box>
               </>
             )}
                 </FileUpload.DropzoneContent>
@@ -189,21 +225,29 @@ export default function Upload() {
               <FileUpload.List />
             </FileUpload.Root>
             {imagePreview && (
-              <Image maxHeight="300px" maxWidth="100%" src={imagePreview} alt="Anteprima immagine" mt={4}>
-              </Image>
+              <Flex flexBasis="50%" align="center" alignItems="stretch">
+                <Image maxHeight="300px" src={imagePreview} alt="Anteprima immagine" mt={4}>
+                </Image>
+              </Flex>
             )}
-
-          </Flex>
         </Flex>
       )}
       </Flex>
 
-      <Button colorScheme="blue" size="sm" onClick={handleHash}>
-        Calcola Hash
+      <Button colorScheme="blue" size="sm" onClick={handleHash} loading={isProcessing}>
+        CALCOLA HASH
       </Button>
 
       {isProcessing && <p>Calcolo dell'hash in corso...</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {hashError && (
+      <Alert.Root status="error" variant="subtle">
+          <Alert.Indicator />
+          <Alert.Title>
+            {error}
+          </Alert.Title>
+      </Alert.Root>
+      )}
+
       {fileType === "document" && docHashData && (
         <p>Hash SHA256 del documento: {docHashData.hash}</p>
       )}
