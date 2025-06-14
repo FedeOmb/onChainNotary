@@ -3,7 +3,7 @@ import { ethers } from 'ethers'
 import {calculateFileHash, calculateImageHash} from './hashing.js'
 import { notarizeDocument, notarizeImage, verifyDocHash, verifyImageHash, imageExists, documentExists} from './contract/contractInteraction.js'
 import { useMetamask } from './WalletContext.jsx'
-import {Box, Flex, Heading, Button, Text, DataList, SegmentGroup, Container, VStack, Stack, FileUpload, Image, Alert, NativeSelect, Card, Link, Collapsible} from "@chakra-ui/react";
+import {Box, Flex, Heading, Button, Text, Span, DataList, SegmentGroup, Container, VStack, Stack, FileUpload, Image, Alert, NativeSelect, Card, Link, Collapsible} from "@chakra-ui/react";
 import { PocketProvider } from 'ethers'
 
 export default function NotarizeVerify({docData, imageData}) {
@@ -112,12 +112,14 @@ export default function NotarizeVerify({docData, imageData}) {
   return (
     <VStack>
 {(docData || imageData) && (
-  <VStack spacing={4} p={6} bg="gray.50" borderRadius="md" w="100%" maxW="600px">
-    <Flex gap={4} w="100%">
+  <VStack spacing={4} p={6} bg="gray.50" borderRadius="md" w="100%" maxW="4xl">
+    <Flex gap={4} w="100%" justifyContent="center" alignItems="center">
       <Button 
-        flex={1}
+        colorPalette="orange"
         variant={operation === "notarize" ? "solid" : "outline"} 
         colorScheme="blue" 
+        size={"lg"}
+        rounded={"full"}
         onClick={docData ? handleNotarize : () => {
           setTxReceipt(null);
           setVerificationResult(null);
@@ -129,9 +131,11 @@ export default function NotarizeVerify({docData, imageData}) {
         Notarizza
       </Button>
       <Button 
-        flex={1}
+        colorPalette="orange"
         variant={operation === "verify" ? "solid" : "outline"} 
         colorScheme="blue" 
+        size={"lg"}
+        rounded={"full"}
         onClick={handleVerify}
       >
         Verifica
@@ -139,9 +143,9 @@ export default function NotarizeVerify({docData, imageData}) {
     </Flex>
 
     {imageData && operation === "notarize" && (
-      <Box w="100%">
+      <Box w="100%" display="flex" flexDirection="column"align="center" alignItems={"center"}>
         <Text mb={4} fontWeight="bold">
-          Seleziona l'algoritmo di hashing: {algorithm === "sha256" && "SHA-256"}
+          Seleziona l'algoritmo di hashing da usare: {algorithm === "sha256" && "SHA-256"}
           {algorithm === "phash" && "pHash (Perceptual Hashing)"}
         </Text>
        { !isProcessing && !txReceipt && !verificationResult && (
@@ -164,8 +168,8 @@ export default function NotarizeVerify({docData, imageData}) {
                 <Text ml={2} fontWeight="bold">SHA-256</Text>
               </Flex>
               <Text fontSize="sm" color="gray.600">
-                Algoritmo di hashing standard che genera un'impronta digitale unica del file.
-                Ideale per la verifica dell'integrità del documento.
+                Genera un'impronta digitale unica del contenuto visivo dell'immagine (esclusi i metadati).
+                Qualsiasi modifica all'immagine, anche minima come un nuovo salvataggio, modificherà l'hash.
               </Text>
             </Stack>
           </Card.Body>
@@ -188,19 +192,22 @@ export default function NotarizeVerify({docData, imageData}) {
                   <Text ml={2} fontWeight="bold">pHash (Perceptual Hashing)</Text>
                 </Flex>
                 <Text fontSize="sm" color="gray.600">
-                  Genera un hash basato sul contenuto visivo dell'immagine.
-                  Utile per identificare immagini simili anche se leggermente modificate.
-                </Text>
+                  Genera un hash del contenuto visivo dell'immagine usando un algoritmo di tipo percettivo.
+                  L'hash non cambia nel caso di modifiche minime all'immagine ad esempio se è stata compressa o caricata sui social media.
+                  </Text>
               </Stack>
             </Card.Body>
           </Card.Root>
+                      <Text fontSize="sm" color="gray.600" p={4}>
+              In entrambi i casi insieme all'hash del contentuto visivo verrà salvato anche l'hash SHA256 del file immagine completo (inclusi i metadati).
+              </Text>
       </VStack>
     )}
 
         <Button 
-          mt={4}
-          w="100%"
-          colorScheme="blue"
+          bg={{base:"orange.600", _hover:'orange.700'}}
+          rounded={'full'}
+          px={6}
           onClick={handleNotarize}
           loading={isProcessing}
         >
@@ -227,7 +234,7 @@ export default function NotarizeVerify({docData, imageData}) {
               {imageData && "Immagine Notarizzata con successo!"}
             </Alert.Title>
               <Alert.Description>
-              <Text>Hash della transazione: {txReceipt.hash}</Text>
+              <Text size="md">Hash della transazione: {txReceipt.hash}</Text>
               <Text>La transazione è stata minata nel blocco: {txReceipt.blockNumber}</Text>
               <Text>Visualizza la transazione su <Link target="_blank" href={`https://sepolia.etherscan.io/tx/${txReceipt.hash}`} variant="underline">EtherScan.io</Link></Text>
             </Alert.Description>
@@ -260,7 +267,7 @@ export default function NotarizeVerify({docData, imageData}) {
           )}
           {verificationResult && (
             <Box>
-          <Alert.Root status={(imageData && verificationResult.fullHashVerification) || docData ? "success": "info"} variant="subtle">
+          <Alert.Root size="lg"status={(imageData && verificationResult.fullHashVerification) || docData ? "success": "info"} variant="subtle">
             <Alert.Indicator />
             <Alert.Content>
             <Alert.Title>
@@ -269,7 +276,7 @@ export default function NotarizeVerify({docData, imageData}) {
             </Alert.Title>
               <Alert.Description>
                 <VStack>
-                <DataList.Root orientation={"horizontal"}>
+                <DataList.Root orientation={"horizontal"} size="lg">
                 <DataList.Item>
                   <DataList.ItemLabel>Data di upload: </DataList.ItemLabel>
                   <DataList.ItemValue>{verificationResult.readableDate}</DataList.ItemValue>
@@ -301,30 +308,30 @@ export default function NotarizeVerify({docData, imageData}) {
                 )}
                 <Collapsible.Root>
                   <Collapsible.Trigger paddingY="3" fontWeight="bold">Vedi tutti i dettagli</Collapsible.Trigger>
-                  <Collapsible.Content>
+                  <Collapsible.Content bg="gray.50" color="gray.800">
                     <Box padding="4" borderWidth="1px">
                     { docData && (
                       <Box>
                       <Text>Dettagli del documento recuperati:</Text>
-                      <Text>Hash verificato: {verificationResult.docHash}</Text>
-                      <Text>Algoritmo di hash usato: {verificationResult.hashAlgorithm}</Text>
-                      <Text>Uploader: {verificationResult.uploader}</Text>
-                      <Text>Timestamp di upload: {verificationResult.timestamp}</Text>
-                      <Text>Data di upload: {verificationResult.readableDate}</Text>
+                      <Text><strong>Hash verificato: </strong>{verificationResult.docHash}</Text>
+                      <Text><strong>Algoritmo di hash usato: </strong>{verificationResult.hashAlgorithm}</Text>
+                      <Text><strong>Uploader: </strong>{verificationResult.uploader}</Text>
+                      <Text><strong>Timestamp di upload: </strong>{verificationResult.timestamp}</Text>
+                      <Text><strong>Data di upload: </strong>{verificationResult.readableDate}</Text>
 
                     </Box>
                     )}
                     { imageData && (
                       <Box>
                       <Text>Dettagli dell'immagine recuperati:</Text>
-                      <Text>Hash dei pixel verificato: {verificationResult.pixelHash}</Text>
-                      <Text>Algoritmo di hash pixel: {verificationResult.pixelHashAlgorithm}</Text>
-                      <Text>Uploader: {verificationResult.uploader}</Text>
-                      <Text>Timestamp di upload: {verificationResult.timestamp}</Text>
-                      <Text>Data di upload: {verificationResult.readableDate}</Text>
-                      <Text>Hash file completo: {verificationResult.fullHash}</Text>
-                      <Text>Algoritmo di hash file completo: {verificationResult.fullHashAlgorithm}</Text>
-                      <Text>Estensione immagine originale: {verificationResult.extension}</Text>
+                      <Text><strong>Hash dei pixel verificato: </strong>{verificationResult.pixelHash}</Text>
+                      <Text><strong>Algoritmo di hash pixel: </strong>{verificationResult.pixelHashAlgorithm}</Text>
+                      <Text><strong>Uploader: </strong>{verificationResult.uploader}</Text>
+                      <Text><strong>Timestamp di upload: </strong>{verificationResult.timestamp}</Text>
+                      <Text><strong>Data di upload: </strong>{verificationResult.readableDate}</Text>
+                      <Text><strong>Hash file completo: </strong>{verificationResult.fullHash}</Text>
+                      <Text><strong>Algoritmo di hash file completo: </strong>{verificationResult.fullHashAlgorithm}</Text>
+                      <Text><strong>Estensione immagine originale: </strong>{verificationResult.extension}</Text>
                     </Box>
                     )}    
                     </Box>

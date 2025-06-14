@@ -209,8 +209,8 @@ try {
         console.log("Number of documents:", count[0].toString());
         console.log("Number of images:", count[1].toString());
         return {
-            images: Number(count[0]),
-            documents: Number(count[1])
+            documents: Number(count[0]),
+            images: Number(count[1])
         };
 } catch (error) {
         console.error("Errore durante il recupero", error);

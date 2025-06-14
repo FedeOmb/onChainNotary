@@ -2,12 +2,14 @@ import React from 'react';
 import {
   Box,
   Heading,
-  Container,
+  Flex,
   Text,
+  Span,
   Button,
   Stack,
   Icon,
   createIcon,
+  Image
 } from '@chakra-ui/react';
 
 export default function HomeCTA() {
@@ -20,49 +22,40 @@ export default function HomeCTA() {
   };
 
   return (
-    <Container maxW={'3xl'} minH={'20vh'} maxH={"40vh"}display={'flex'} alignItems={'center'}>
+    <Flex width="100vw" minH={'30vh'} maxH={"40vh"} alignItems={'center'} justify="center" bg="gray.50">
       <Stack
+      maxWidth={"6xl"}
         as={Box}
         textAlign={'center'}
+        align={'center'}
         spacing={{ base: 8, md: 14 }}
-        py={{ base: 20, md: 36 }}
+        py={{ base: 20, md: 30 }}
       >
+                <Image src="./icons/stamp.png" height="70px"/>
         <Heading
           fontWeight={600}
           fontSize={{ base: '2xl', sm: '4xl', md: '6xl' }}
           lineHeight={'110%'}
         >
-          Notarizza i tuoi documenti <br />
-          <Text as={'span'} color={'blue.400'}>
-            sulla blockchain
-          </Text>
+          <Span color={'orange.400'}>Notarizza</Span> i tuoi documenti<br />
+          sulla <Span color={'orange.400'}> blockchain</Span>
         </Heading>
         <Text color={'gray.500'} fontSize={{ base: 'lg', md: 'xl' }}>
           onChainNotary ti permette di salvare l'impronta digitale dei tuoi file sulla blockchain
-          Ethereum. Proteggi l'autenticità dei tuoi documenti e immagini in modo immutabile e
+          Ethereum. <br/> Proteggi integrità e autenticità dei tuoi documenti e immagini in modo immutabile e
           verificabile da chiunque.
         </Text>
-        <Stack
-          direction={'column'}
-          spacing={3}
-          align={'center'}
-          alignSelf={'center'}
-          position={'relative'}
+
+        <Button
+          bg={{base:"orange.600", _hover:'orange.700'}}
+          rounded={'full'}
+          px={6}
+          onClick={scrollToUpload}
         >
-          <Button
-            colorScheme={'blue'}
-            bg={'blue.400'}
-            rounded={'full'}
-            px={6}
-            _hover={{
-              bg: 'blue.500',
-            }}
-            onClick={scrollToUpload}
-          >
-            Inizia ora
-          </Button>
-        </Stack>
+          Inizia ora
+        </Button>
+
       </Stack>
-    </Container>
+    </Flex>
   );
 }

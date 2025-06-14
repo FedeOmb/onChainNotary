@@ -8,19 +8,21 @@ import HomeCTA from './HomeCTA.jsx'
 import Upload from './Upload.jsx'
 import FilesHistory from './FilesHistory.jsx'
 import { MetamaskProvider } from './WalletContext.jsx'
+import FAQSection from './FAQSection'
 
 const root = document.getElementById("root");
 
 ReactDOM.createRoot(root).render(
   <StrictMode>
-    <Provider>
+    <ChakraProvider value={defaultSystem}>
       <MetamaskProvider>
         <Navbar />
         <HomeCTA />
         <Upload />
         <FilesHistory />
+        <FAQSection />
       </MetamaskProvider>
 
-    </Provider>
+    </ChakraProvider>
   </StrictMode>
 );

@@ -14,7 +14,8 @@ import {
   Link,
   Flex,
   Table,
-  Collapsible
+  Collapsible,
+  Span
 } from '@chakra-ui/react';
 
 export default function FilesHistory() {
@@ -90,23 +91,15 @@ export default function FilesHistory() {
   }, [account, contract]);
 
 
-  if (!account) {
-    return (
-      <Alert.Root status="warning">
-        <Alert.Indicator />
-        <Alert.Title>Connetti il tuo wallet per vedere i tuoi file</Alert.Title>
-      </Alert.Root>
-    );
-  }
 
   const FileRow = ({ file, type }) => (
     <Table.Row>
       <Table.Cell>
-        <Badge colorScheme={type === 'document' ? 'blue' : 'green'}>
+        <Badge >
           {type === 'document' ? file.hashAlgorithm : file.pixelHashAlgorithm}
         </Badge>
       </Table.Cell>
-      <Table.Cell maxW="300px" isTruncated>
+      <Table.Cell isTruncated>
         {type === 'document' ? file.docHash : file.pixelHash}
       </Table.Cell>
       <Table.Cell>{file.extension || '-'}</Table.Cell>
@@ -125,19 +118,34 @@ export default function FilesHistory() {
   );
 
   return (
-    <Box p={4} maxW="container.md" mx="auto">
-      <VStack spacing={4} align="stretch">
-        <Heading size="lg">I tuoi File Notarizzati</Heading>
-        <Text>Hai notarizzato in totale:</Text>
-        <Text>{filesCount.documents} documenti</Text>
-        <Text>{filesCount.images} immagini</Text>
+    <Box
+    bg="gray.50"
+    width="100vw"
+    alignItems="center">
+      <VStack spacing={4} align="center" width="100%" p="4" mx="auto"maxW="6xl" >
+        <Heading as="h2" color="orange.600">I tuoi File Notarizzati</Heading>
+        <Text>Hai notarizzato in totale:  <Span fontWeight="bold">{filesCount.documents}</Span> documenti - <Span fontWeight="bold">{filesCount.images}</Span> immagini</Text>
 
-        <Collapsible.Root open={openedList} lazyMount="true"onOpenChange={function(){
+         { account ? (
+        <Collapsible.Root open={openedList} lazyMount="true" style={{ width: '100%' }} onOpenChange={function(){
             setOpenedList(!openedList)
             fetchFiles();
             }
             }>
-            <Collapsible.Trigger paddingY="3" fontWeight="bold">Vedi gli ultimi 10 files notarizzati</Collapsible.Trigger>
+    <Box width="100%" display="flex" justifyContent="center" alignItems="center" mb={4}>
+        <Collapsible.Trigger
+            as="button"
+            padding={1}
+            colorPalette="orange"
+            layerStyle={"outline.solid"}
+            borderRadius="md"
+            _hover={{
+                backgroundColor: "orange.100"
+            }}
+        >
+            Vedi gli ultimi 10 files notarizzati
+        </Collapsible.Trigger>
+    </Box>
             <Collapsible.Content>
         {error && (
           <Alert.Root status="error">
@@ -147,14 +155,14 @@ export default function FilesHistory() {
           </Alert.Root>
         )}
 
-        <Tabs.Root lazyMount="true" variant="outline" defaultValue="documents">
+        <Tabs.Root lazyMount="true" variant="outline" colorPalette="orange" fitted defaultValue="documents">
           <Tabs.List>
             <Tabs.Trigger value='documents'>Documenti ({documents.length})</Tabs.Trigger>
             <Tabs.Trigger value="images">Immagini ({images.length})</Tabs.Trigger>
           </Tabs.List>
 
 
-            <Tabs.Content value="documents">
+            <Tabs.Content value="documents" bg="white">
               {isLoading ? (
                 <Text color="gray.500">Caricamento dei dati in corso...</Text>
               ) : documents.length > 0 ? (
@@ -162,7 +170,7 @@ export default function FilesHistory() {
                 {/* documents.map((doc, index) => (
                   <FileCard key={index} file={doc} type="document" />
                 )) */}
-                <Table.Root variant="simple">
+                <Table.Root variant="line" striped="true">
                   <Table.Header>
                     <Table.Row>
                       <Table.ColumnHeader>Algoritmo</Table.ColumnHeader>
@@ -184,7 +192,7 @@ export default function FilesHistory() {
               )}
             </Tabs.Content>
 
-            <Tabs.Content value="images">
+            <Tabs.Content value="images" bg="white">
               {isLoading ? (
                 <Text color="gray.500">Caricamento dei dati in corso...</Text>
               ) : images.length > 0 ? (
@@ -192,7 +200,8 @@ export default function FilesHistory() {
                     {/*images.map((img, index) => (
                   <FileCard key={index} file={img} type="image" />
                 )) */}
-                <Table.Root variant="simple">
+                <Table.ScrollArea maxWidth={"100%"}>
+                <Table.Root variant="line" striped="true">
                   <Table.Header>
                     <Table.Row>
                       <Table.ColumnHeader>Algoritmo</Table.ColumnHeader>
@@ -208,6 +217,7 @@ export default function FilesHistory() {
                     ))}
                   </Table.Body>
                 </Table.Root>
+                </Table.ScrollArea>
                 </>
               ) : (
                 <Text color="gray.500">Nessuna immagine trovata</Text>
@@ -218,7 +228,13 @@ export default function FilesHistory() {
             </Collapsible.Content>
         </Collapsible.Root>
 
+        ) : (
 
+        <Alert.Root status="warning">
+            <Alert.Indicator />
+            <Alert.Title>Connetti il tuo wallet per vedere i tuoi file</Alert.Title>
+        </Alert.Root>
+        )}
       </VStack>
     </Box>
   );

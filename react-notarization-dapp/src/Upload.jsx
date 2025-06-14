@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { ethers } from "ethers";
 import { acceptedDocTypes, acceptedImageTypes} from "./supportedFilesConfig.js";
 import {
-  Box, Flex, Heading, Button, Text, SegmentGroup, Container, VStack, FileUpload, Image, Alert, NativeSelect
+  Box, Flex, Heading, Button, Text, SegmentGroup, Container, VStack, FileUpload, Image, Alert, NativeSelect, DataList
 } from "@chakra-ui/react";
 import { calculateFileHash, calculateImageHash } from "./hashing.js";
 import NotarizeVerify from "./NotarizeVerify.jsx";
@@ -17,6 +17,12 @@ export default function Upload() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadError, setUploadError] = useState(null);
   const [hashError, setHashError] = useState(null)
+
+  const formatFileSize = (bytes) => {
+    const mib = (bytes / (1024 * 1024)).toFixed(2);
+    return `${mib} MB`;
+  };
+
   const handleFileChange = async (e) => {
     const file = e.files[0];
     console.log("File selected:", file);
@@ -127,14 +133,16 @@ export default function Upload() {
 
   return (
     <VStack spacing={4} p={4} align="center" id="upload-section">
-      <Heading as="h2" size="xl" mb={4}>
+      <Heading as="h2" size="xl" color={"orange.600"}>
         Carica un Documento o un'immagine
       </Heading>
+        <Text>L'analisi del file verrà eseguita in locale sul tuo dispositivo, soltanto il suo hash sarà inviato alla blockchain</Text>
       <Text>Seleziona il tipo di file da caricare:</Text>
 
-      <SegmentGroup.Root value={fileType} onValueChange={onOptionChange}>
-        <SegmentGroup.Indicator />
-        <SegmentGroup.Items items={[
+
+      <SegmentGroup.Root colorPalette="orange" value={fileType} onValueChange={onOptionChange}>
+        <SegmentGroup.Indicator layerStyle={"fill.surface"}/>
+        <SegmentGroup.Items  items={[
           { label: "Documento", value: "document" },
           { label: "Immagine", value: "image" },
         ]}>
@@ -144,8 +152,8 @@ export default function Upload() {
       <Flex justify="center" width="90vw" p={4}>
 
       {fileType === "document" && (
-        <Flex flexDirection="row" flexWrap="wrap" flexGrow="1" p={4} justifyContent={"center"} gap="10x">
-          <FileUpload.Root maxW="xl" flexBasis="50%" flexGrow="1" alignItems="stretch" maxFiles={1} maxFileSize="100000000" onFileAccept={handleFileChange} onFileReject={handleFileReject}>
+        <Flex flexDirection="row" flexWrap="wrap" flexGrow="1" p={4} justifyContent={"center"} gap="2">
+          <FileUpload.Root maxW="xl" flexBasis="50%" flexGrow="1" alignItems="stretch" maxFiles={1} maxFileSize="50000000" onFileAccept={handleFileChange} onFileReject={handleFileReject}>
             <FileUpload.HiddenInput />
             <FileUpload.Dropzone>
               <FileUpload.DropzoneContent>
@@ -153,9 +161,9 @@ export default function Upload() {
               <Flex direction="column" align="center" gap={2}>
                 <Box>
                   <Heading as="h3" size="md" mt={4}>File caricato:</Heading>
-              <Text>File: {file.name}</Text>
-              <Text>Dimensione: {file.size} bytes</Text>
-              <Text>Tipo: {file.type}</Text>
+              <Text><strong>File: </strong>{file.name}</Text>
+              <Text><strong>Dimensione: </strong>{formatFileSize(file.size)} ({file.size} bytes) </Text>
+              <Text><strong>Tipo: </strong>{file.type}</Text>
                 </Box>
                 <Button colorScheme="red" size="sm" onClick={clearState}>
                   Rimuovi file
@@ -164,7 +172,7 @@ export default function Upload() {
             ) : (
               <>
                 <Box>Trascina qui un documento per calcolare il suo Hash</Box>
-                <Box color="fg.muted">sono supportati i più comuni formati di documenti e testo fino a 100 MB</Box>
+                <Box color="fg.muted">sono supportati i più comuni formati di documenti e testo fino a 50 MB</Box>
               <Box>
               {uploadError && (
                 <Alert.Root status="error" variant="subtle">
@@ -185,8 +193,8 @@ export default function Upload() {
       )}
 
       {fileType === "image" && (
-        <Flex flexDirection="row" flexWrap="wrap" flexGrow="1" flexShrink="1" p={4} justifyContent={"center"} gap={1}>
-            <FileUpload.Root maxW="xl" flexBasis="50%" alignItems="stretch" maxFiles={1} accept="image/jpeg,image/png,image/gif,image/bmp" maxFileSize="20000000" onFileAccept={handleImageChange} onFileReject={handleImageReject}>
+        <Flex flexDirection="row" flexWrap="wrap" flexGrow="1" p={4} justifyContent={"center"} gap={2}>
+            <FileUpload.Root maxW="xl" flexBasis="50%" flexGrow="1"alignItems="stretch" maxFiles={1} accept="image/jpeg,image/png,image/gif,image/bmp" maxFileSize="20000000" onFileAccept={handleImageChange} onFileReject={handleImageReject}>
               <FileUpload.HiddenInput />
               <FileUpload.Dropzone>
                 <FileUpload.DropzoneContent>
@@ -194,9 +202,9 @@ export default function Upload() {
               <Flex direction="column" align="center" gap={2}>
                 <Box>
                   <Heading as="h3" size="md" mt={4}>Immagine caricata:</Heading>
-                  <Text>File: {image.name}</Text>
-                  <Text>Dimensione: {image.size} bytes</Text>
-                  <Text>Tipo: {image.type}</Text>
+                  <Text><strong>File:</strong> {image.name}</Text>
+                  <Text><strong>Dimensione:</strong> {formatFileSize(image.size)} ({image.size} bytes) </Text>
+                  <Text><strong>Tipo:</strong> {image.type}</Text>
                 </Box>
                 <Button colorScheme="red" size="sm" onClick={clearState}>
                   Rimuovi immagine
@@ -225,8 +233,9 @@ export default function Upload() {
               <FileUpload.List />
             </FileUpload.Root>
             {imagePreview && (
-              <Flex flexBasis="50%" align="center" alignItems="stretch">
-                <Image maxHeight="300px" src={imagePreview} alt="Anteprima immagine" mt={4}>
+              <Flex flexBasis="30%" flexDirection="column" align="center" alignItems="stretch" justifyContent={"center"} >
+                <Heading as="h3" size="md" textAlign="center">Anteprima Immagine:</Heading>
+                <Image src={imagePreview} alt="Anteprima immagine" maxHeight="300px"fit="contain" mt={4}>
                 </Image>
               </Flex>
             )}
@@ -234,7 +243,11 @@ export default function Upload() {
       )}
       </Flex>
 
-      <Button colorScheme="blue" size="sm" onClick={handleHash} loading={isProcessing}>
+      <Button
+          bg={{base:"orange.600", _hover:'orange.700'}}
+          rounded={'full'}
+          px={6}
+          onClick={handleHash} loading={isProcessing}>
         CALCOLA HASH
       </Button>
 
@@ -247,17 +260,34 @@ export default function Upload() {
           </Alert.Title>
       </Alert.Root>
       )}
-
+    {(docHashData || imageHashData )&& (
+      <Box  p={4} borderWidth={1} borderRadius="md" layerStyle="fill.subtle" >
       {fileType === "document" && docHashData && (
-        <p>Hash SHA256 del documento: {docHashData.hash}</p>
+        <DataList.Root orientation={"horizontal"}>
+        <DataList.Item>
+          <DataList.ItemLabel>Hash SHA256 del documento: </DataList.ItemLabel>
+          <DataList.ItemValue>{docHashData.hash}</DataList.ItemValue>
+        </DataList.Item>
+        </DataList.Root>
       )}
       {fileType === "image" && imageHashData && (
-        <div>
-          <p>Hash SHA256 dei pixel dell'immagine: {imageHashData.pixelHashSHA256}</p>
-          <p>Hash pHash dei pixel dell'immagine: {imageHashData.phash}</p>
-          <p>Hash SHA256 del file immagine completo: {imageHashData.fullHash}</p>
-        </div>
+        <DataList.Root orientation={"horizontal"} variant="bold">
+        <DataList.Item>
+          <DataList.ItemLabel>Hash SHA256 dei pixel dell'immagine:</DataList.ItemLabel>
+          <DataList.ItemValue>{imageHashData.pixelHashSHA256}</DataList.ItemValue>
+        </DataList.Item>
+          <DataList.Item>
+          <DataList.ItemLabel>Hash pHash dei pixel dell'immagine:</DataList.ItemLabel>
+          <DataList.ItemValue>{imageHashData.phash}</DataList.ItemValue>
+        </DataList.Item>
+          <DataList.Item>
+          <DataList.ItemLabel>Hash SHA256 del file immagine completo:</DataList.ItemLabel>
+          <DataList.ItemValue>{imageHashData.fullHash}</DataList.ItemValue>
+        </DataList.Item>
+        </DataList.Root>
       )}
+      </Box>
+    )}
       {(docHashData || imageHashData) && (
         <NotarizeVerify docData={docHashData} imageData={imageHashData} />
       )}
