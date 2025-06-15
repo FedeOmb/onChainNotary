@@ -1,4 +1,4 @@
-export const contractAddress = "0x55efCcecE8C0bfD1CA26c31807583E67590eF0E6";
+export const contractAddress = "0x811e18dbCD72f2Cac1CeF8C86Ae3C9924E8717Ee";
 export const contractAbi = [
 	{
 		"anonymous": false,
@@ -109,6 +109,57 @@ export const contractAbi = [
 				"internalType": "string",
 				"name": "_hashAlgorithm",
 				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_extension",
+				"type": "string"
+			}
+		],
+		"name": "notarizeDocument",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes",
+				"name": "_imageHash",
+				"type": "bytes"
+			},
+			{
+				"internalType": "bytes",
+				"name": "_fullHash",
+				"type": "bytes"
+			},
+			{
+				"internalType": "string",
+				"name": "_extension",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_imageHashAlgorithm",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_fullHashAlgorithm",
+				"type": "string"
+			}
+		],
+		"name": "notarizeImage",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes",
+				"name": "_docHash",
+				"type": "bytes"
 			}
 		],
 		"name": "documentExistsByHash",
@@ -147,11 +198,6 @@ export const contractAbi = [
 				"internalType": "bytes",
 				"name": "_docHash",
 				"type": "bytes"
-			},
-			{
-				"internalType": "string",
-				"name": "_hashAlgorithm",
-				"type": "string"
 			}
 		],
 		"name": "getDocumentByHash",
@@ -225,11 +271,6 @@ export const contractAbi = [
 				"internalType": "bytes",
 				"name": "_imageHash",
 				"type": "bytes"
-			},
-			{
-				"internalType": "string",
-				"name": "_imageHashAlgorithm",
-				"type": "string"
 			}
 		],
 		"name": "getImageByHash",
@@ -367,14 +408,9 @@ export const contractAbi = [
 				"internalType": "bytes",
 				"name": "_imageHash",
 				"type": "bytes"
-			},
-			{
-				"internalType": "string",
-				"name": "_imageHashAlgorithm",
-				"type": "string"
 			}
 		],
-		"name": "imageExistsByHash",
+		"name": "imageExists",
 		"outputs": [
 			{
 				"internalType": "bool",
@@ -402,62 +438,6 @@ export const contractAbi = [
 			}
 		],
 		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "bytes",
-				"name": "_docHash",
-				"type": "bytes"
-			},
-			{
-				"internalType": "string",
-				"name": "_hashAlgorithm",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "_extension",
-				"type": "string"
-			}
-		],
-		"name": "notarizeDocument",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "bytes",
-				"name": "_imageHash",
-				"type": "bytes"
-			},
-			{
-				"internalType": "bytes",
-				"name": "_fullHash",
-				"type": "bytes"
-			},
-			{
-				"internalType": "string",
-				"name": "_extension",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "_imageHashAlgorithm",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "_fullHashAlgorithm",
-				"type": "string"
-			}
-		],
-		"name": "notarizeImage",
-		"outputs": [],
-		"stateMutability": "nonpayable",
 		"type": "function"
 	}
 ]

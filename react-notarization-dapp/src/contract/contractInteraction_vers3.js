@@ -8,12 +8,12 @@ function getTimeoutPromise() {
     );
 }
 
-export async function verifyDocHash(contract, hash, algorithm="sha256") {
+export async function verifyDocHash(contract, hash) {
     try {
         console.log("Hash da verificare:", hash);
         //const result = await contract.getDocumentByHash(hash);
         const result = await Promise.race([
-            contract.getDocumentByHash(hash, algorithm.toLowerCase()),
+            contract.getDocumentByHash(hash),
             getTimeoutPromise()
         ]);        
         const [uploader, timestamp, hashAlgorithm, extension] = result;
@@ -38,12 +38,12 @@ export async function verifyDocHash(contract, hash, algorithm="sha256") {
   }
 }
 
-export async function verifyImageHash(contract, hash, algorithm="sha256") {
+export async function verifyImageHash(contract, hash) {
     try {
         console.log("Hash da verificare:", hash);
         //const result = await contract.getImageByHash(hash);
         const result = await Promise.race([
-        contract.getImageByHash(hash, algorithm.toLowerCase()),
+        contract.getImageByHash(hash),
         getTimeoutPromise()
         ]);     
         const [fullHash, uploader, timestamp, extension, pixelHashAlgorithm, fullHashAlgorithm] = result;
@@ -123,11 +123,11 @@ export async function notarizeImage(contract, pixelHash, fullHash, extension, al
     }
 }
 
-export async function documentExists(contract, hash, algorithm="sha256") {
+export async function documentExists(contract, hash) {
     try {
         //const exists = await contract.documentExistsByHash(hash);
         const exists = await Promise.race([
-            contract.documentExistsByHash(hash, algorithm.toLowerCase()),
+            contract.documentExistsByHash(hash),
             getTimeoutPromise()
         ]);       
         console.log("Document exists:", exists);
@@ -141,14 +141,14 @@ export async function documentExists(contract, hash, algorithm="sha256") {
     }
 }
 
-export async function imageExists(contract, hash, algorithm="sha256") {
+export async function imageExists(contract, hash) {
     try {
         //const exists = await contract.imageExists(hash);
         const exists = await Promise.race([
-            contract.imageExistsByHash(hash, algorithm.toLowerCase()),
+            contract.imageExists(hash),
             getTimeoutPromise()
         ]);               
-        console.log("Image exists:", exists);
+        console.log("Document exists:", exists);
         return exists;
     } catch (error) {
     if (error.message && error.message.includes("Timeout")) {

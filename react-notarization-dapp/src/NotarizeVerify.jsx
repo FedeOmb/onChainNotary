@@ -11,11 +11,13 @@ export default function NotarizeVerify({docData, imageData}) {
   const [operation, setOperation] = useState(null)
   const [algorithm,setAlgorithm] = useState(null);
   const [txReceipt, setTxReceipt] = useState(null)
-  const [verificationResult, setVerificationResult] = useState(null)
+  const [verificationResult, setVerificationResult] = useState([])
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
+  const [existingHashes, setExistingHashes] = useState(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
-  const handleNotarize = async () => {
+  const handleInitNotarize = async () => {
     setOperation("notarize");
     setIsProcessing(true);
     setError(null);
@@ -32,6 +34,32 @@ export default function NotarizeVerify({docData, imageData}) {
       setTxReceipt(result);
       setIsProcessing(false);
       }else if(imageData){
+        // Verifica se l'immagine esiste già con altri algoritmi
+        let hashSHA256Exists = await imageExists(contract, imageData.pixelHashSHA256, "sha256");
+        let pHashExists = await imageExists(contract, imageData.phash, "phash");
+
+        if ((algorithm === "sha256" && pHashExists) || (algorithm === "phash" && hashSHA256Exists)) {
+          setExistingHashes({
+            sha256: hashSHA256Exists ? imageData.pixelHashSHA256 : null,
+            phash: pHashExists ? imageData.phash : null
+          });
+          setShowConfirmDialog(true);
+          setIsProcessing(false);
+          console.log("Immagine già esistente con altri algoritmi di hashing");
+          return;
+        }
+
+      }
+    } catch (error) {
+    } finally{
+    }
+  }
+
+  const handleContinueNotarize = async () => {
+    setShowConfirmDialog(false);
+    setIsProcessing(true);
+    try{
+        //se l'immagine non esiste già procedi con la notarizzazione
         console.log(imageData)
         let hashToNotarize 
         if(algorithm == "sha256" ) {
@@ -47,9 +75,8 @@ export default function NotarizeVerify({docData, imageData}) {
         console.log(result)
         setTxReceipt(result);
         setIsProcessing(false);
-      }
     } catch (error) {
-          setError(error.message);
+      setError(error.message);
     } finally{
       setIsProcessing(false);
     }
@@ -73,29 +100,35 @@ export default function NotarizeVerify({docData, imageData}) {
         setVerificationResult(result);
         setIsProcessing(false);
       }else if(imageData){
-        let hashSHA256Exists = await imageExists(contract, imageData.pixelHashSHA256);
-        let pHashExists = await imageExists(contract, imageData.phash);
-        if (!hashSHA256Exists && !pHashExists) {
-          setError("Immagine non trovata");
-        }
-        let result;
+        // Verifica se l'immagine esiste già con altri algoritmi
+        let hashSHA256Exists = await imageExists(contract, imageData.pixelHashSHA256, "sha256");
+        console.log("hashSHA256Exists:", hashSHA256Exists);
+        let pHashExists = await imageExists(contract, imageData.phash, "phash");
+        console.log("pHashExists:", pHashExists);
+
+        let results = [];
         if(hashSHA256Exists) {
-        result = await verifyImageHash(contract, imageData.pixelHashSHA256);
-        }else if(pHashExists) {
-        result = await verifyImageHash(contract, imageData.phash);
-        } else {
+        const sha256Result = await verifyImageHash(contract, imageData.pixelHashSHA256, "sha256");
+        console.log("sha256Result:", sha256Result);
+        results.push(sha256Result);
+        }
+        if(pHashExists) {
+        const phashResult = await verifyImageHash(contract, imageData.phash, "phash");
+        console.log("phashResult:", phashResult);
+        results.push(phashResult);
+        }
+        if(!hashSHA256Exists && !pHashExists) {
           setError("Immagine non trovata");
           setIsProcessing(false);
           return;
         }
-        let fullHashVerification = false;
-        if (result.fullHash === imageData.fullHash) {
-          fullHashVerification = true;
-        }
-        result.fullHashVerification = fullHashVerification;
 
-        console.log("Image verification result:", result);
-        setVerificationResult(result);
+        results = results.map(res => ({
+          ...res,
+          fullHashVerification: res.fullHash === imageData.fullHash
+        }));
+        console.log("Image verification result:", results);
+        setVerificationResult(results);
         setIsProcessing(false);
       }
     } catch (error) {
@@ -120,7 +153,7 @@ export default function NotarizeVerify({docData, imageData}) {
         colorScheme="blue" 
         size={"lg"}
         rounded={"full"}
-        onClick={docData ? handleNotarize : () => {
+        onClick={docData ? handleInitNotarize : () => {
           setTxReceipt(null);
           setVerificationResult(null);
           setAlgorithm(null);
@@ -208,7 +241,7 @@ export default function NotarizeVerify({docData, imageData}) {
           bg={{base:"orange.600", _hover:'orange.700'}}
           rounded={'full'}
           px={6}
-          onClick={handleNotarize}
+          onClick={handleInitNotarize}
           loading={isProcessing}
         >
           Avvia Notarizzazione
@@ -217,6 +250,39 @@ export default function NotarizeVerify({docData, imageData}) {
     )}
   </VStack>
 )}
+      {showConfirmDialog && (
+        <Alert.Root status="warning" variant="subtle">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Title>
+              Immagine già notarizzata con un altro algoritmo
+            </Alert.Title>
+            <Alert.Description>
+              <VStack align="stretch" spacing={4}>
+                <Text>
+                  Questa immagine è già stata notarizzata utilizzando {existingHashes.sha256 ? "SHA-256" : "pHash"}.
+                  Vuoi procedere con la notarizzazione usando {algorithm}?
+                </Text>
+                <Flex gap={4}>
+                  <Button
+                    colorScheme="orange"
+                    onClick={handleContinueNotarize}
+                  >
+                    Procedi comunque
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowConfirmDialog(false)}
+                  >
+                    Annulla
+                  </Button>
+                </Flex>
+              </VStack>
+            </Alert.Description>
+          </Alert.Content>
+        </Alert.Root>
+      )}
+
       {(docData || imageData) && operation === "notarize" && (
         <Box>
           {isProcessing && 
@@ -266,81 +332,101 @@ export default function NotarizeVerify({docData, imageData}) {
               {imageData && "Verifica dell'immagine in corso..."}</Heading>
           )}
           {verificationResult && (
-            <Box>
-          <Alert.Root size="lg"status={(imageData && verificationResult.fullHashVerification) || docData ? "success": "info"} variant="subtle">
-            <Alert.Indicator />
-            <Alert.Content>
-            <Alert.Title>
-              {docData && "Documento verificato con successo!"}
-              {imageData && "Immagine verificata con successo!"}
-            </Alert.Title>
-              <Alert.Description>
-                <VStack>
-                <DataList.Root orientation={"horizontal"} size="lg">
-                <DataList.Item>
-                  <DataList.ItemLabel>Data di upload: </DataList.ItemLabel>
-                  <DataList.ItemValue>{verificationResult.readableDate}</DataList.ItemValue>
-                </DataList.Item>
-                  <DataList.Item>
-                  <DataList.ItemLabel>Uploader Account: </DataList.ItemLabel>
-                  <DataList.ItemValue>{verificationResult.uploader}</DataList.ItemValue>
-                </DataList.Item>
-                </DataList.Root>
-                {imageData && (
-                <>
-                  <Text fontWeight="bold" fontSize={"md"}>
-                    {verificationResult.fullHashVerification ? ("Il file immagine corrisponde in modo completo a quella salvata in blockchain, non è stata alterata in nessun modo") :"Il file immagine non corrisponde in modo completo a quello salvato in blockchain"}
-                    </Text>
-                  { !verificationResult.fullHashVerification && (
-                  <Text>
-                  {verificationResult.pixelHashAlgorithm === "sha256" && ("Il contenuto visivo dell'immagine è stato verificato con l'algoritmo SHA-256 quindi non è stato alterato in nessun modo, tuttavia i metadati dell'immagine potrebbero essere stati modificati")}
-                  {verificationResult.pixelHashAlgorithm === "phash" && ("Il contenuto visivo dell'immagine è stato verificato con l'algoritmo pHash, quindi potrebbe essere stato modificato in modo minimo, inoltre i metadati dell'immagine potrebbero essere stati modificati")}
-                  </Text>
-                    )}
-                </>
-                )}
-                {docData && (
-                <>
-                  <Text fontWeight="bold" fontSize={"md"}>
-                    Il documento corrisponde in modo completo a quello salvato in blockchain, non è stato alterato in alcun modo
-                    </Text>
-                </>
-                )}
-                <Collapsible.Root>
-                  <Collapsible.Trigger paddingY="3" fontWeight="bold">Vedi tutti i dettagli</Collapsible.Trigger>
-                  <Collapsible.Content bg="gray.50" color="gray.800">
-                    <Box padding="4" borderWidth="1px">
-                    { docData && (
-                      <Box>
-                      <Text>Dettagli del documento recuperati:</Text>
-                      <Text><strong>Hash verificato: </strong>{verificationResult.docHash}</Text>
-                      <Text><strong>Algoritmo di hash usato: </strong>{verificationResult.hashAlgorithm}</Text>
-                      <Text><strong>Uploader: </strong>{verificationResult.uploader}</Text>
-                      <Text><strong>Timestamp di upload: </strong>{verificationResult.timestamp}</Text>
-                      <Text><strong>Data di upload: </strong>{verificationResult.readableDate}</Text>
+            <Box display={"flex"} flexDirection="column" gap={2}>
+              {verificationResult.length > 1 && (
+                <Alert.Root status="info" variant="subtle">
+                    <Alert.Indicator />
+                    <Alert.Title>
+                          La verifica ha restituito più risultati
+                    </Alert.Title>
+                    <Alert.Description>
+                      La stessa immagine è stata notarizzata con più algoritmi di hashing diversi, controlla i dettagli di seguito
+                    </Alert.Description>
+                    
+                </Alert.Root>
+              )}
+              {verificationResult.map((res, index) => (
+                <Alert.Root key={index} size="lg" status={(imageData && res.fullHashVerification) || docData ? "success": "info"} variant="subtle">
+                  <Alert.Indicator />
+                  <Alert.Content>
+                  <Alert.Title>
+                    {docData && "Documento verificato con successo!"}
+                    {imageData && "Immagine verificata con successo!"}
+                  </Alert.Title>
+                    <Alert.Description>
+                      <VStack align="stretch">
+                      <DataList.Root orientation={"horizontal"} size="md" variant={"bold"}>
+                      <DataList.Item>
+                        <DataList.ItemLabel>Data di upload: </DataList.ItemLabel>
+                        <DataList.ItemValue>{res.readableDate}</DataList.ItemValue>
+                      </DataList.Item>
+                        <DataList.Item>
+                        <DataList.ItemLabel>Uploader Account: </DataList.ItemLabel>
+                        <DataList.ItemValue>{res.uploader}</DataList.ItemValue>
+                      </DataList.Item>
+                        <DataList.Item>
+                        <DataList.ItemLabel>Hash verificato: </DataList.ItemLabel>
+                        <DataList.ItemValue>{res.pixelHash}</DataList.ItemValue>
+                      </DataList.Item>
+                        <DataList.Item>
+                        <DataList.ItemLabel>Algoritmo di hash: </DataList.ItemLabel>
+                        <DataList.ItemValue>{res.pixelHashAlgorithm}</DataList.ItemValue>
+                      </DataList.Item>
+                      </DataList.Root>
+                      {imageData && (
+                      <>
+                        <Text fontWeight="bold" fontSize={"md"}>
+                          {res.fullHashVerification ? ("Il file immagine corrisponde in modo completo a quella salvata in blockchain, non è stata alterata in nessun modo") :"Il file immagine non corrisponde in modo completo a quello salvato in blockchain"}
+                          </Text>
+                        { !res.fullHashVerification && (
+                        <Text>
+                        {res.pixelHashAlgorithm === "sha256" && ("Il contenuto visivo dell'immagine è stato verificato con l'algoritmo SHA-256 quindi non è stato alterato in nessun modo, tuttavia i metadati dell'immagine potrebbero essere stati modificati")}
+                        {res.pixelHashAlgorithm === "phash" && ("Il contenuto visivo dell'immagine è stato verificato con l'algoritmo pHash, quindi potrebbe essere stato modificato in modo minimo, inoltre i metadati dell'immagine potrebbero essere stati modificati")}
+                        </Text>
+                          )}
+                      </>
+                      )}
+                      {docData && (
+                      <>
+                        <Text fontWeight="bold" fontSize={"md"}>
+                          Il documento corrisponde in modo completo a quello salvato in blockchain, non è stato alterato in alcun modo
+                          </Text>
+                      </>
+                      )}
+                      <Collapsible.Root>
+                        <Collapsible.Trigger paddingY="3" fontWeight="bold">Vedi tutti i dettagli</Collapsible.Trigger>
+                        <Collapsible.Content bg="gray.50" color="gray.800">
+                          <Box padding="4" borderWidth="1px">
+                          { docData && (
+                            <Box>
+                            <Text><strong>Hash verificato: </strong>{res.docHash}</Text>
+                            <Text><strong>Algoritmo di hash usato: </strong>{res.hashAlgorithm}</Text>
+                            <Text><strong>Uploader: </strong>{res.uploader}</Text>
+                            <Text><strong>Timestamp di upload: </strong>{res.timestamp}</Text>
+                            <Text><strong>Data di upload: </strong>{res.readableDate}</Text>
 
-                    </Box>
-                    )}
-                    { imageData && (
-                      <Box>
-                      <Text>Dettagli dell'immagine recuperati:</Text>
-                      <Text><strong>Hash dei pixel verificato: </strong>{verificationResult.pixelHash}</Text>
-                      <Text><strong>Algoritmo di hash pixel: </strong>{verificationResult.pixelHashAlgorithm}</Text>
-                      <Text><strong>Uploader: </strong>{verificationResult.uploader}</Text>
-                      <Text><strong>Timestamp di upload: </strong>{verificationResult.timestamp}</Text>
-                      <Text><strong>Data di upload: </strong>{verificationResult.readableDate}</Text>
-                      <Text><strong>Hash file completo: </strong>{verificationResult.fullHash}</Text>
-                      <Text><strong>Algoritmo di hash file completo: </strong>{verificationResult.fullHashAlgorithm}</Text>
-                      <Text><strong>Estensione immagine originale: </strong>{verificationResult.extension}</Text>
-                    </Box>
-                    )}    
-                    </Box>
-                  </Collapsible.Content>
-                </Collapsible.Root>
-                </VStack>
-            </Alert.Description>
-            </Alert.Content>
-        </Alert.Root>
+                          </Box>
+                          )}
+                          { imageData && (
+                            <Box>
+                            <Text><strong>Hash dei pixel verificato: </strong>{res.pixelHash}</Text>
+                            <Text><strong>Algoritmo di hash pixel: </strong>{res.pixelHashAlgorithm}</Text>
+                            <Text><strong>Uploader: </strong>{res.uploader}</Text>
+                            <Text><strong>Timestamp di upload: </strong>{res.timestamp}</Text>
+                            <Text><strong>Data di upload: </strong>{res.readableDate}</Text>
+                            <Text><strong>Hash file completo: </strong>{res.fullHash}</Text>
+                            <Text><strong>Algoritmo di hash file completo: </strong>{res.fullHashAlgorithm}</Text>
+                            <Text><strong>Estensione immagine originale: </strong>{res.extension}</Text>
+                          </Box>
+                          )}    
+                          </Box>
+                        </Collapsible.Content>
+                      </Collapsible.Root>
+                      </VStack>
+                  </Alert.Description>
+                  </Alert.Content>
+              </Alert.Root>
+              ))}
         
             </Box>
           )}
