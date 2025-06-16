@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useMetamask } from './WalletContext';
-import { getMyDocumentsKeys, getMyImagesKeys, getDocumentByKey, getImageByKey, getMyFilesCount} from './contract/contractInteraction';
+import { getMyDocumentsKeys, getMyImagesKeys, getDocumentByKey, getImageByKey, getMyFilesCount} from '../contract/contractInteraction';
 import {
   Box,
   VStack,
@@ -29,15 +29,16 @@ export default function FilesHistory() {
 
   const fetchFiles = async () => {
     if (!contract || !account) return;
-
+    /*
     if (documents.length > 0 && images.length > 0) {
         console.log('Files already loaded');
     return;
-    }
-    
+    }*/
+
     setIsLoading(true);
     setError(null);
-    try {
+    try {    
+      fetchFilesCount();
       // Recupera le chiavi
       const docKeys = await getMyDocumentsKeys(contract);
       const imgKeys = await getMyImagesKeys(contract);
@@ -102,9 +103,12 @@ export default function FilesHistory() {
       <Table.Cell isTruncated>
         {type === 'document' ? file.docHash : file.pixelHash}
       </Table.Cell>
+      {type === 'image' && (
+        <Table.Cell>{file.fullHash}</Table.Cell>
+      )}
       <Table.Cell>{file.extension || '-'}</Table.Cell>
       <Table.Cell>{file.readableDate}</Table.Cell>
-      <Table.Cell>
+      {/*<Table.Cell>
         <Link
           color="blue.500"
           href={`https://sepolia.etherscan.io/address/${file.uploader}`}
@@ -113,7 +117,7 @@ export default function FilesHistory() {
         >
           {`${file.uploader.slice(0, 6)}...${file.uploader.slice(-4)}`}
         </Link>
-      </Table.Cell>
+      </Table.Cell>*/}
     </Table.Row>    
   );
 
@@ -121,8 +125,8 @@ export default function FilesHistory() {
     <Box
     bg="gray.50"
     width="100vw"
-    alignItems="center">
-      <VStack spacing={4} align="center" width="100%" p="4" mx="auto"maxW="6xl" >
+    alignItems="center" id="history-section">
+      <VStack spacing={4} align="center" width="100%" p="4" mx="auto" maxW="8xl" >
         <Heading as="h2" color="orange.600">I tuoi File Notarizzati</Heading>
         <Text>Hai notarizzato in totale:  <Span fontWeight="bold">{filesCount.documents}</Span> documenti - <Span fontWeight="bold">{filesCount.images}</Span> immagini</Text>
 
@@ -177,7 +181,6 @@ export default function FilesHistory() {
                       <Table.ColumnHeader>Hash</Table.ColumnHeader>
                       <Table.ColumnHeader>Estensione</Table.ColumnHeader>
                       <Table.ColumnHeader>Data di Upload</Table.ColumnHeader>
-                      <Table.ColumnHeader>Uploader</Table.ColumnHeader>
                     </Table.Row>
                   </Table.Header>
                   <Table.Body>
@@ -205,10 +208,10 @@ export default function FilesHistory() {
                   <Table.Header>
                     <Table.Row>
                       <Table.ColumnHeader>Algoritmo</Table.ColumnHeader>
-                      <Table.ColumnHeader>Hash</Table.ColumnHeader>
+                      <Table.ColumnHeader>Hash Pixel</Table.ColumnHeader>
+                      <Table.ColumnHeader>Hash file completo</Table.ColumnHeader>
                       <Table.ColumnHeader>Estensione</Table.ColumnHeader>
                       <Table.ColumnHeader>Data di Upload</Table.ColumnHeader>
-                      <Table.ColumnHeader>Uploader</Table.ColumnHeader>
                     </Table.Row>
                   </Table.Header>
                   <Table.Body>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { ethers } from 'ethers'
-import {calculateFileHash, calculateImageHash} from './hashing.js'
-import { notarizeDocument, notarizeImage, verifyDocHash, verifyImageHash, imageExists, documentExists} from './contract/contractInteraction.js'
+import {calculateFileHash, calculateImageHash} from '../hashing.js'
+import { notarizeDocument, notarizeImage, verifyDocHash, verifyImageHash, imageExists, documentExists} from '../contract/contractInteraction.js'
 import { useMetamask } from './WalletContext.jsx'
 import {Box, Flex, Heading, Button, Text, Span, DataList, SegmentGroup, Container, VStack, Stack, FileUpload, Image, Alert, NativeSelect, Card, Link, Collapsible} from "@chakra-ui/react";
 import { PocketProvider } from 'ethers'
@@ -47,11 +47,15 @@ export default function NotarizeVerify({docData, imageData}) {
           setIsProcessing(false);
           console.log("Immagine già esistente con altri algoritmi di hashing");
           return;
+        } else{
+          handleContinueNotarize()
         }
 
       }
     } catch (error) {
+      setError(error.message);
     } finally{
+      setIsProcessing(false); 
     }
   }
 
@@ -97,7 +101,7 @@ export default function NotarizeVerify({docData, imageData}) {
       if(docData){
         const result = await verifyDocHash(contract, docData.hash);
         console.log("Document verification result:", result);
-        setVerificationResult(result);
+        setVerificationResult([result]);
         setIsProcessing(false);
       }else if(imageData){
         // Verifica se l'immagine esiste già con altri algoritmi
@@ -300,9 +304,20 @@ export default function NotarizeVerify({docData, imageData}) {
               {imageData && "Immagine Notarizzata con successo!"}
             </Alert.Title>
               <Alert.Description>
-              <Text size="md">Hash della transazione: {txReceipt.hash}</Text>
-              <Text>La transazione è stata minata nel blocco: {txReceipt.blockNumber}</Text>
-              <Text>Visualizza la transazione su <Link target="_blank" href={`https://sepolia.etherscan.io/tx/${txReceipt.hash}`} variant="underline">EtherScan.io</Link></Text>
+                <DataList.Root orientation={"horizontal"} size="md" variant={"bold"} gap="1">
+                <DataList.Item>
+                  <DataList.ItemLabel>Hash della transazione: </DataList.ItemLabel>
+                  <DataList.ItemValue>{txReceipt.hash}</DataList.ItemValue>
+                </DataList.Item>
+                <DataList.Item>
+                  <DataList.ItemLabel>La transazione è stata minata nel blocco: </DataList.ItemLabel>
+                  <DataList.ItemValue>{txReceipt.blockNumber}</DataList.ItemValue>
+                </DataList.Item>
+                <DataList.Item>
+                  <DataList.ItemLabel>Visualizza la transazione su: </DataList.ItemLabel>
+                  <DataList.ItemValue><Link target="_blank" href={`https://sepolia.etherscan.io/tx/${txReceipt.hash}`} variant="underline">EtherScan.io</Link></DataList.ItemValue>
+                </DataList.Item>                
+                </DataList.Root>
             </Alert.Description>
             </Alert.Content>
         </Alert.Root>
@@ -355,23 +370,26 @@ export default function NotarizeVerify({docData, imageData}) {
                   </Alert.Title>
                     <Alert.Description>
                       <VStack align="stretch">
-                      <DataList.Root orientation={"horizontal"} size="md" variant={"bold"}>
+                      <DataList.Root orientation={"horizontal"} size="md" variant={"bold"} gap="1">
                       <DataList.Item>
                         <DataList.ItemLabel>Data di upload: </DataList.ItemLabel>
                         <DataList.ItemValue>{res.readableDate}</DataList.ItemValue>
                       </DataList.Item>
-                        <DataList.Item>
+                      <DataList.Item>
                         <DataList.ItemLabel>Uploader Account: </DataList.ItemLabel>
                         <DataList.ItemValue>{res.uploader}</DataList.ItemValue>
                       </DataList.Item>
-                        <DataList.Item>
+                      { imageData && (
+                        <>
+                      <DataList.Item>
                         <DataList.ItemLabel>Hash verificato: </DataList.ItemLabel>
                         <DataList.ItemValue>{res.pixelHash}</DataList.ItemValue>
                       </DataList.Item>
-                        <DataList.Item>
+                      <DataList.Item>
                         <DataList.ItemLabel>Algoritmo di hash: </DataList.ItemLabel>
                         <DataList.ItemValue>{res.pixelHashAlgorithm}</DataList.ItemValue>
                       </DataList.Item>
+                        </>)}
                       </DataList.Root>
                       {imageData && (
                       <>

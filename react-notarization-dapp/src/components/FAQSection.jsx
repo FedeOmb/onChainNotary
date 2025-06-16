@@ -3,7 +3,7 @@ import {Box, VStack, Span, Heading, Text, Accordion, Container, List,Mark} from 
 
 export default function FAQSection() {
   return (
-    <Box bg="gray.50" width="100vw" py={8}>
+    <Box bg="white" width="100vw" py={8} id="faq-section">
       <Container maxW="6xl">
         <VStack spacing={8} align="stretch">
           <Heading as="h2" size="xl" color="orange.600" textAlign="center">

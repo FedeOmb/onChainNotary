@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { ethers } from 'ethers';
-import { contractAddress, contractAbi } from "./contract/contractConfig.js";
+import { contractAddress, contractAbi } from "../contract/contractConfig.js";
 
 const WalletContext = createContext();
 

@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { ethers } from "ethers";
-import { acceptedDocTypes, acceptedImageTypes} from "./supportedFilesConfig.js";
+import { acceptedDocTypes, acceptedImageTypes} from "../supportedFilesConfig.js";
 import {
   Box, Flex, Heading, Button, Text, SegmentGroup, Container, VStack, FileUpload, Image, Alert, NativeSelect, DataList
 } from "@chakra-ui/react";
-import { calculateFileHash, calculateImageHash } from "./hashing.js";
+import { calculateFileHash, calculateImageHash } from "../hashing.js";
 import NotarizeVerify from "./NotarizeVerify.jsx";
 
 export default function Upload() {
