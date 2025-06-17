@@ -1,21 +1,10 @@
 import { ethers } from "ethers";
-import { contractAddress, contractAbi } from "./contractConfig.js";
-
-const TX_TIMEOUT = 30000; // 30 seconds
-function getTimeoutPromise() {
-    return new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Timeout di connessione alla rete Ethereum")), TX_TIMEOUT)
-    );
-}
 
 export async function verifyDocHash(contract, hash, algorithm="sha256") {
     try {
         console.log("Hash da verificare:", hash);
-        //const result = await contract.getDocumentByHash(hash);
-        const result = await Promise.race([
-            contract.getDocumentByHash(hash, algorithm.toLowerCase()),
-            getTimeoutPromise()
-        ]);        
+        const result = await contract.getDocumentByHash(hash, algorithm.toLowerCase());
+
         const [uploader, timestamp, hashAlgorithm, extension] = result;
         const date = new Date(Number(timestamp) * 1000);
         console.log(result);
@@ -30,9 +19,6 @@ export async function verifyDocHash(contract, hash, algorithm="sha256") {
         extension: extension,
     };
 } catch (error) {
-    if (error.message && error.message.includes("Timeout")) {
-        throw new Error("Timeout di connessione. Riprova o controlla la tua rete.");
-    }
     console.error("Errore durante la verifica del documento:", error);
     throw error;
   }
@@ -41,11 +27,8 @@ export async function verifyDocHash(contract, hash, algorithm="sha256") {
 export async function verifyImageHash(contract, hash, algorithm="sha256") {
     try {
         console.log("Hash da verificare:", hash);
-        //const result = await contract.getImageByHash(hash);
-        const result = await Promise.race([
-        contract.getImageByHash(hash, algorithm.toLowerCase()),
-        getTimeoutPromise()
-        ]);     
+        const result = await contract.getImageByHash(hash, algorithm.toLowerCase());
+
         const [fullHash, uploader, timestamp, extension, pixelHashAlgorithm, fullHashAlgorithm] = result;
         const date = new Date(Number(timestamp) * 1000);
         console.log(result);
@@ -61,9 +44,6 @@ export async function verifyImageHash(contract, hash, algorithm="sha256") {
         fullHashAlgorithm: fullHashAlgorithm,
     };
 } catch (error) {
-    if (error.message && error.message.includes("Timeout")) {
-        throw new Error("Timeout di connessione. Riprova o controlla la tua rete.");
-    }    
     console.error("Errore durante la verifica del documento:", error);
     throw error;
   }    
@@ -71,11 +51,8 @@ export async function verifyImageHash(contract, hash, algorithm="sha256") {
 
 export async function notarizeDocument(contract, hash, algorithm, extension){
     try{
-        //const tx = await contract.notarizeDocument(hash, algorithm, extension);
-        const tx = await Promise.race([
-            contract.notarizeDocument(hash, algorithm, extension),
-            getTimeoutPromise()
-        ]);    
+        const tx = await contract.notarizeDocument(hash, algorithm, extension);
+
         console.log("Transaction sent:", tx);
         const txReceipt = await tx.wait();
         console.log("Documento salvato", txReceipt);
@@ -84,9 +61,6 @@ export async function notarizeDocument(contract, hash, algorithm, extension){
     if (error?.message?.includes("hash already stored") || error?.reason?.includes("hash already stored")) {
           throw new Error("Transazione annullata: questo hash è già stato memorizzato sulla blockchain.");
     }    
-    if (error.message && error.message.includes("Timeout")) {
-        throw new Error("Timeout di connessione. Riprova o controlla la tua rete.");
-    }
     if(error.code === "ACTION_REJECTED" || error.code === 4001) {
         throw new Error("Transazione annullata dall'utente.");
     }
@@ -99,11 +73,8 @@ export async function notarizeDocument(contract, hash, algorithm, extension){
 export async function notarizeImage(contract, pixelHash, fullHash, extension, algoPixelHash, algoFullHash){
     try{
         console.log("notarizzazione immagine in corso")
-        //const tx = await contract.notarizeImage(pixelHash, fullHash, extension, algoPixelHash, algoFullHash);
-        const tx = await Promise.race([
-            contract.notarizeImage(pixelHash, fullHash, extension, algoPixelHash, algoFullHash),            
-            getTimeoutPromise()
-        ]);  
+        const tx = await contract.notarizeImage(pixelHash, fullHash, extension, algoPixelHash, algoFullHash);
+
         console.log("Transaction sent:", tx);
         const txReceipt = await tx.wait();
         console.log("Documento salvato", txReceipt);
@@ -112,9 +83,6 @@ export async function notarizeImage(contract, pixelHash, fullHash, extension, al
     if (error?.message?.includes("hash already stored") || error?.reason?.includes("hash already stored")) {
           throw new Error("Transazione annullata: questo hash è già stato memorizzato sulla blockchain.");
     }    
-    if (error.message && error.message.includes("Timeout")) {
-        throw new Error("Timeout di connessione. Riprova o controlla la tua rete.");
-    }
     if(error.code === "ACTION_REJECTED" || error.code === 4001) {
         throw new Error("Transazione annullata dall'utente.");
     }
@@ -125,17 +93,11 @@ export async function notarizeImage(contract, pixelHash, fullHash, extension, al
 
 export async function documentExists(contract, hash, algorithm="sha256") {
     try {
-        //const exists = await contract.documentExistsByHash(hash);
-        const exists = await Promise.race([
-            contract.documentExistsByHash(hash, algorithm.toLowerCase()),
-            getTimeoutPromise()
-        ]);       
+        const exists = await contract.documentExistsByHash(hash, algorithm.toLowerCase());
+
         console.log("Document exists:", exists);
         return exists;
-    } catch (error) {
-    if (error.message && error.message.includes("Timeout")) {
-        throw new Error("Timeout di connessione. Riprova o controlla la tua rete.");
-    }        
+    } catch (error) { 
         console.error("Errore durante la verifica del documento:", error);
         throw error;
     }
@@ -143,17 +105,11 @@ export async function documentExists(contract, hash, algorithm="sha256") {
 
 export async function imageExists(contract, hash, algorithm="sha256") {
     try {
-        //const exists = await contract.imageExists(hash);
-        const exists = await Promise.race([
-            contract.imageExistsByHash(hash, algorithm.toLowerCase()),
-            getTimeoutPromise()
-        ]);               
+        const exists = await contract.imageExistsByHash(hash, algorithm.toLowerCase());
+      
         console.log("Image exists:", exists);
         return exists;
     } catch (error) {
-    if (error.message && error.message.includes("Timeout")) {
-        throw new Error("Timeout di connessione. Riprova o controlla la tua rete.");
-    }        
         console.error("Errore durante la verifica dell'immagine:", error);
         throw error;
     }
@@ -171,9 +127,6 @@ try {
         console.log("keys retrieved:", hashesReadable);
         return hashesReadable;
 } catch (error) {
-    if (error.message && error.message.includes("Timeout")) {
-        throw new Error("Timeout di connessione.");
-    }        
         console.error("Errore durante il recupero degli hash", error);
         throw error;
     }    
@@ -191,9 +144,6 @@ try {
         console.log("keys retrieved:", hashesReadable);
         return hashesReadable;
 } catch (error) {
-    if (error.message && error.message.includes("Timeout")) {
-        throw new Error("Timeout di connessione.");
-    }        
         console.error("Errore durante il recupero degli hash", error);
         throw error;
     }        
@@ -202,10 +152,7 @@ try {
 export async function getMyFilesCount(contract){
 try {
         const count = await contract.getMyFilesCount();
-/*         const count = await Promise.race([
-            contract.getMyFilesCount(),
-            getTimeoutPromise()
-        ]);   */               
+             
         console.log("Number of documents:", count[0].toString());
         console.log("Number of images:", count[1].toString());
         return {

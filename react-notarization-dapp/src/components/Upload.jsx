@@ -1,10 +1,7 @@
 import React, { useState } from "react";
-import { ethers } from "ethers";
 import { acceptedDocTypes, acceptedImageTypes} from "../supportedFilesConfig.js";
-import {
-  Box, Flex, Heading, Button, Text, SegmentGroup, Container, VStack, FileUpload, Image, Alert, NativeSelect, DataList
-} from "@chakra-ui/react";
-import { calculateFileHash, calculateImageHash } from "../hashing.js";
+import { Box, Flex, Heading, Button, Text, SegmentGroup, Container, VStack, FileUpload, Image, Alert, NativeSelect, DataList} from "@chakra-ui/react";
+import { calculateFileHash, calculateImageHash } from "../lib/hashing.js";
 import NotarizeVerify from "./NotarizeVerify.jsx";
 
 export default function Upload() {
@@ -68,11 +65,6 @@ export default function Upload() {
     const isPNG = file.type === "image/png";
     const isJPEG = file.type === "image/jpeg";
 
-    /*if (!isPNG && !isJPEG) {
-      throw new Error(
-        "Formato non supportato. Solo PNG e JPEG sono supportati."
-      );
-    }*/
     setImage(file);
     // Crea un'anteprima dell'immagine
     setImagePreview(URL.createObjectURL(file));
@@ -194,7 +186,7 @@ export default function Upload() {
 
       {fileType === "image" && (
         <Flex flexDirection="row" flexWrap="wrap" flexGrow="1" p={4} justifyContent={"center"} gap={2}>
-            <FileUpload.Root maxW="xl" flexBasis="50%" flexGrow="1"alignItems="stretch" maxFiles={1} accept="image/jpeg,image/png,image/gif,image/bmp" maxFileSize="20000000" onFileAccept={handleImageChange} onFileReject={handleImageReject}>
+            <FileUpload.Root maxW="xl" flexBasis="50%" flexGrow="1"alignItems="stretch" maxFiles={1} accept={acceptedImageTypes.join(",")} maxFileSize="20000000" onFileAccept={handleImageChange} onFileReject={handleImageReject}>
               <FileUpload.HiddenInput />
               <FileUpload.Dropzone>
                 <FileUpload.DropzoneContent>

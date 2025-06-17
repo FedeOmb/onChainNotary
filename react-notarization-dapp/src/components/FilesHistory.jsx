@@ -147,7 +147,7 @@ export default function FilesHistory() {
                 backgroundColor: "orange.100"
             }}
         >
-            Vedi gli ultimi 10 files notarizzati
+            Vedi gli ultimi file notarizzati
         </Collapsible.Trigger>
     </Box>
             <Collapsible.Content>

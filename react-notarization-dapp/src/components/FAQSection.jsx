@@ -63,7 +63,7 @@ export default function FAQSection() {
 
                   <List.Root ml="5" mt="2"gap={2} colorPalette={"orange"}>
                     <List.Item _marker={{ color: "orange.700" , fontWeight: "bold" }}>
-                    Per i <Mark variant="subtle">documenti</Mark> viene calcolato un solo hash SHA-256 dell'intero file.
+                    Per i <Mark variant="subtle">documenti</Mark> viene calcolato un solo hash SHA-256 dell'intero file, che permette di garantire l'integrità del documento.
                     </List.Item>
                     <List.Item _marker={{ color: "orange.700" , fontWeight: "bold" }}>
                        Per le <Mark variant="subtle">immagini</Mark> invece è possibile scegliere tra due approcci:
@@ -71,35 +71,36 @@ export default function FAQSection() {
                 </List.Root>
                   <List.Root as="ol" variant={"marker"} colorPalette={"orange"} ml="10" mt="2"gap={2}>
                   <List.Item _marker={{ color: "orange.700" , fontWeight: "bold" }}>
-                  <Mark variant="subtle">Hash SHA-256 </Mark> del contenuto visivo dell'immagine (esclusi i metadati): è l'approccio predefinito e più rigoroso, garantisce l'integrità dell'immagine in modo analogo ai documenti, qualsiasi modifica successiva, anche minima come un nuovo salvataggio o una compressione, produrrà un hash completamente diverso e la verifica non andrà a buon fine.
+                  <Mark variant="subtle">Hash SHA-256 </Mark> del contenuto visivo dell'immagine (esclusi i metadati): è l'approccio predefinito e più rigoroso che permette di garantire l'integrità.
                   </List.Item>
                   <List.Item _marker={{ color: "orange.700" , fontWeight: "bold" }}>
-                  <Mark variant="subtle">Hash percettivo (pHash) </Mark>(hash): è un approccio meno rigoroso ma più flessibile, genera un hash basato sulle caratteristiche visive principali dell'immagine. 
-                  Questo permettedi verificare in un momento successivo l'immagine anche se ha subito modifiche minori come compressione, ridimensionamento o pubblicazione sui social media. 
-                  Tuttavia può dare falsi positivi.
+                  <Mark variant="subtle">Hash percettivo (pHash) </Mark>: è un approccio meno rigoroso ma più flessibile per la successiva verifica.
                   </List.Item>
                 </List.Root>
-
-                <Text ml="10" mt="2">
-                  In entrambi i casi insieme all'hash del contenuto visivo dell'immagine (solo i pixel esclusi i metadati) viene anche salvato l'hash del file completo (pixel + metadati) per verificarne anche l'integrità complessiva del file immagine, nel caso di una corrispondenza trovata.
-                  </Text>
                 </Accordion.ItemBody>
               </Accordion.ItemContent>
             </Accordion.Item>
 
             <Accordion.Item value="3">
               <Accordion.ItemTrigger>
-                <Span flex="1">Qual è la differenza tra l'algoritmo SHA-256 e pHash per le immagini?</Span>
+                <Span flex="1">Qual è la differenza tra usare l'algoritmo SHA-256 e pHash per notarizzare una immagine?</Span>
                 <Accordion.ItemIndicator />
               </Accordion.ItemTrigger>
               <Accordion.ItemContent>
                 <Accordion.ItemBody>
-                  SHA-256 genera un'impronta digitale unica del contenuto visivo dell'immagine. 
-                  Qualsiasi modifica, anche minima come un nuovo salvataggio o una compressione, produrrà un hash completamente diverso.
-                  <br/><br/>
-                  pHash (Perceptual Hash) invece genera un hash basato sulle caratteristiche visive principali dell'immagine.
-                  Questo permette di identificare l'immagine anche se ha subito modifiche minori come compressione, ridimensionamento o 
-                  pubblicazione sui social media.
+                <List.Root variant={"marker"} colorPalette={"orange"} ml="5" mt="2"gap={2}>
+                  <List.Item _marker={{ color: "orange.700" , fontWeight: "bold" }}>
+                  L'<Mark variant="subtle">Hash SHA-256 </Mark> del contenuto dell'immagine (esclusi i metadati), garantisce l'integrità dell'immagine in modo analogo ai documenti, qualsiasi modifica successiva, anche minima come un nuovo salvataggio o una compressione, produrrà un hash completamente diverso e la verifica non andrà a buon fine.
+                  </List.Item>
+                  <List.Item _marker={{ color: "orange.700" , fontWeight: "bold" }}>
+                  L'<Mark variant="subtle">Hash percettivo (pHash) </Mark>(hash), genera un hash basato sulle caratteristiche visive principali dell'immagine invece che sui dati binari.
+                  L'hash rimane uguale anche se l'immagine ha subito modifiche minori come compressione, ridimensionamento o pubblicazione sui social media, permettendo di verificare comunque l'immagine anche in questi casi.
+                  Tuttavia data la sua flessibilità, pHash non garantisce l'integrità dell'immagine e può dare falsi positivi.
+                  </List.Item>
+                </List.Root>
+                  <Text ml="10" mt="2">
+                  In entrambi i casi insieme all'hash del contenuto visivo dell'immagine (solo i pixel esclusi i metadati) viene anche salvato l'<Mark variant="subtle">hash del file completo</Mark> (pixel + metadati) per verificare anche l'integrità complessiva del file immagine, nel caso di una corrispondenza trovata.
+                  </Text>
                 </Accordion.ItemBody>
               </Accordion.ItemContent>
             </Accordion.Item>
@@ -111,9 +112,31 @@ export default function FAQSection() {
               </Accordion.ItemTrigger>
               <Accordion.ItemContent>
                 <Accordion.ItemBody>
-                  No, i file che carichi nella piattaforma non vengono mai salvati sulla blockchain o inviati a server esterni.
-                  Tutta l'elaborazione avviene localmente nel browser dell'utente e solo l'hash (l'impronta digitale) 
+                  <Text colorPalette={"orange"}>
+                  <Mark variant="subtle">No</Mark>, i file che carichi nella piattaforma non vengono mai salvati sulla blockchain o inviati a server esterni.
+                  Tutta <Mark variant="subtle">l'elaborazione avviene localmente</Mark> nel browser dell'utente e <Mark variant="subtle">solo l'hash</Mark> (l'impronta digitale) 
                   viene salvato sulla blockchain. Questo garantisce la privacy dei tuoi contenuti.
+                  </Text>
+                </Accordion.ItemBody>
+              </Accordion.ItemContent>
+            </Accordion.Item>
+
+            <Accordion.Item value="5">
+              <Accordion.ItemTrigger>
+                <Span flex="1">Quali sono i formati di immagine e documenti supportati?</Span>
+                <Accordion.ItemIndicator />
+              </Accordion.ItemTrigger>
+              <Accordion.ItemContent>
+                <Accordion.ItemBody>
+                <List.Root variant={"marker"} colorPalette={"orange"} ml="5" mt="2"gap={2}>
+                  <List.Item _marker={{ color: "orange.700" , fontWeight: "bold" }}>
+                  <Mark variant="subtle">Formati di immagine supportati:</Mark>  JPEG, PNG, GIF, BMP con dimensione massima 20 MB
+                  </List.Item>
+                  <List.Item _marker={{ color: "orange.700" , fontWeight: "bold" }}>
+                  <Mark variant="subtle">Formati di documenti supportati:</Mark>  PDF, formati di Microsoft Office, formati di OpenOffice, txt, csv, html, xml, json e markdown con dimensione massima di 50 MB
+
+                  </List.Item>
+                </List.Root>
                 </Accordion.ItemBody>
               </Accordion.ItemContent>
             </Accordion.Item>

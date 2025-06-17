@@ -1,10 +1,7 @@
 import React, { useState } from 'react'
-import { ethers } from 'ethers'
-import {calculateFileHash, calculateImageHash} from '../hashing.js'
 import { notarizeDocument, notarizeImage, verifyDocHash, verifyImageHash, imageExists, documentExists} from '../contract/contractInteraction.js'
 import { useMetamask } from './WalletContext.jsx'
 import {Box, Flex, Heading, Button, Text, Span, DataList, SegmentGroup, Container, VStack, Stack, FileUpload, Image, Alert, NativeSelect, Card, Link, Collapsible} from "@chakra-ui/react";
-import { PocketProvider } from 'ethers'
 
 export default function NotarizeVerify({docData, imageData}) {
   const { contract, account, provider} = useMetamask();
@@ -185,7 +182,7 @@ export default function NotarizeVerify({docData, imageData}) {
           Seleziona l'algoritmo di hashing da usare: {algorithm === "sha256" && "SHA-256"}
           {algorithm === "phash" && "pHash (Perceptual Hashing)"}
         </Text>
-       { !isProcessing && !txReceipt && !verificationResult && (
+       { imageData && operation === "notarize" && !isProcessing && !txReceipt && !verificationResult && (
       <VStack spacing={4} align="stretch">
         <Card.Root 
           variant="outline"
