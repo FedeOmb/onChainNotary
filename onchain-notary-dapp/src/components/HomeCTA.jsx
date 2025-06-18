@@ -12,7 +12,7 @@ export default function HomeCTA() {
   };
 
   return (
-    <Flex width="100vw" minH={'30vh'} maxH={"40vh"} alignItems={'center'} justify="center" bg="orange.50">
+    <Flex width="100vw" minH={'30vh'} alignItems={'center'} justify="center" bg="orange.50">
       <Stack
         maxWidth={"6xl"}
         as={Box}
@@ -40,7 +40,7 @@ export default function HomeCTA() {
             bg={{ base: "orange.600", _hover: 'orange.700' }}
             rounded={'full'}
             px={6}
-            onClick={scrollToSection("#upload-section")}
+            onClick={() => scrollToSection("upload-section")}
           >
             Inizia ora
           </Button>
@@ -50,7 +50,7 @@ export default function HomeCTA() {
             borderColor="orange.600"
             rounded={'full'}
             px={6}
-            onClick={scrollToSection("#faq-section")}
+            onClick={() => scrollToSection("faq-section")}
           >
             Come funziona?
           </Button>

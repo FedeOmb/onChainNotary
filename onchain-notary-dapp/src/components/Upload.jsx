@@ -239,7 +239,7 @@ export default function Upload() {
         CALCOLA HASH
       </Button>
 
-      {isProcessing && <p>Calcolo dell'hash in corso...</p>}
+      {isProcessing && <Text textAlign={"center"}>Calcolo dell'hash in corso...<br/> Il tempo di calcolo dipende dalle prestazioni del tuo dispositivo </Text>}
       {hashError && (
         <Alert.Root status="error" variant="subtle">
           <Alert.Indicator />
