@@ -2,6 +2,7 @@
   "name": "onchain-notary",
   "private": true,
   "version": "0.1.0",
+  "homepage": "https://fedeomb.github.io/onChainNotary/",
   "type": "module",
   "scripts": {
     "dev": "vite",
