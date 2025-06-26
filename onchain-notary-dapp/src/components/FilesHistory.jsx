@@ -141,7 +141,8 @@ export default function FilesHistory() {
                   {isLoading ? (
                     <Text color="gray.500">Caricamento dei dati in corso...</Text>
                   ) : documents.length > 0 ? (
-                    <>
+                    <>                      
+                    <Table.ScrollArea maxWidth={"100%"}>
                       <Table.Root variant="line" striped="true">
                         <Table.Header>
                           <Table.Row>
@@ -157,6 +158,7 @@ export default function FilesHistory() {
                           ))}
                         </Table.Body>
                       </Table.Root>
+                      </Table.ScrollArea>
                     </>
                   ) : (
                     <Text color="gray.500">Nessun documento trovato</Text>

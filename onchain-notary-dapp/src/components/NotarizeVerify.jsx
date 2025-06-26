@@ -21,6 +21,8 @@ export default function NotarizeVerify({ docData, imageData }) {
     setError(null);
     setTxReceipt(null);
     setVerificationResult(null);
+    setExistingHashes(null);
+    setShowConfirmDialog(false)
 
     if (!contract || !account) {
       setError("Errore nell'accesso all'account. Assicurati di essere connesso a Metamask");
@@ -36,6 +38,8 @@ export default function NotarizeVerify({ docData, imageData }) {
         // Verifica se l'immagine esiste già con altri algoritmi
         let hashSHA256Exists = await imageExists(contract, imageData.pixelHashSHA256, "sha256");
         let pHashExists = await imageExists(contract, imageData.phash, "phash");
+        console.log("phash exists", pHashExists)
+        console.log("sha256 exists", hashSHA256Exists)
         // se esiste già con un algoritmo diverso da quello scelto mostra un dialog all'utente
         if ((algorithm === "sha256" && pHashExists) || (algorithm === "phash" && hashSHA256Exists)) {
           setExistingHashes({
@@ -45,6 +49,11 @@ export default function NotarizeVerify({ docData, imageData }) {
           setShowConfirmDialog(true);
           setIsProcessing(false);
           console.error("Immagine già esistente con altri algoritmi di hashing");
+          return;
+        }
+        if ((algorithm === "sha256" && hashSHA256Exists) || (algorithm === "phash" && pHashExists)) {
+          setError("Transazione annullata: questo hash è già stato memorizzato sulla blockchain.");
+          setIsProcessing(false);
           return;
         }
 
